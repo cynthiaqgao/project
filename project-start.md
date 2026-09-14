@@ -17,9 +17,9 @@ Topic #4 Amazon Review Analysis
 ## Core data source we confirmed we can access
 https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023
 
-[source, link, and what opened]
+We confirm that we are able to access and download the Amazon review datasets.
 
 ## Three questions we still need to resolve
-1. ...
+1. ...¯
 2. ...
 3. ...
