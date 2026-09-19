@@ -1,0 +1,9 @@
+.DS_Store
+*.csv
+*.tsv
+*.parquet
+*.zip
+*.gz
+*.jsonl
+raw_data/
+data/

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phase 1 Project Submission</title>
+    <style>
+      :root {
+        --bg: #f6f2ea;
+        --panel: #f2efe8;
+        --ink: #2b1d1b;
+        --accent: #9b1d1f;
+        --accent-dark: #6f1015;
+        --rule: #d6b88a;
+        --table-head: #8d1f24;
+        --table-row: #f8f3ee;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+      .page {
+        width: 8.5in;
+        min-height: 11in;
+        margin: 0 auto;
+        padding: 0.5in 0.45in 0.6in;
+      }
+      h1 {
+        margin: 0;
+        font-size: 32px;
+        color: var(--accent-dark);
+        line-height: 1.15;
+        letter-spacing: 0.02em;
+      }
+      .subhead {
+        margin: 6px 0 18px;
+        font-size: 18px;
+        color: var(--ink);
+        font-style: italic;
+      }
+      .callout {
+        background: #efeae1;
+        border: 1px solid #c9b98d;
+        padding: 14px 18px;
+        margin: 18px 0 20px;
+        font-size: 18px;
+        line-height: 1.45;
+      }
+      h2 {
+        color: var(--accent);
+        font-size: 26px;
+        margin: 26px 0 14px;
+      }
+      p, li {
+        font-size: 17px;
+        line-height: 1.45;
+      }
+      ul { padding-left: 26px; }
+      .table-wrap {
+        margin: 16px 0 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+      }
+      th, td {
+        border: 1px solid #a98f6d;
+        padding: 10px 10px;
+        vertical-align: top;
+      }
+      th {
+        background: var(--table-head);
+        color: #fff;
+        text-align: left;
+        font-weight: 700;
+      }
+      tr:nth-child(even) td { background: var(--table-row); }
+      .sketch {
+        background: #f9f7f1;
+        border: 1px solid #d7c6a0;
+        padding: 12px;
+        margin-top: 8px;
+      }
+      .sketch-box {
+        width: 100%;
+        display: block;
+        border: 1px solid #caa56d;
+        background: #fff9f2;
+        padding: 14px 14px 8px;
+      }
+      .mini-title {
+        font-weight: bold;
+        color: var(--accent-dark);
+        margin-bottom: 8px;
+      }
+      .filter-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        border: 1px solid #b28d5f;
+        background: #f1e8d6;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+      }
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin: 12px 0 16px;
+      }
+      .kpi {
+        border: 1px solid #d3b57b;
+        background: #f7f2e7;
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+      .chart-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .chart {
+        border: 1px solid #d3b57b;
+        background: #fffefb;
+        min-height: 120px;
+        padding: 7px;
+        position: relative;
+        font-size: 12px;
+      }
+      .bars {
+        display: flex;
+        align-items: flex-end;
+        height: 70px;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .bars span {
+        display: inline-block;
+        width: 22%;
+        background: #b9b4ae;
+        border: 1px solid #8c7e77;
+      }
+      .bars span:nth-child(1) { height: 55%; background: #d4a178; }
+      .bars span:nth-child(2) { height: 70%; background: #bea891; }
+      .bars span:nth-child(3) { height: 60%; background: #c8c4ba; }
+      .bars span:nth-child(4) { height: 78%; background: #d9be8a; }
+      .table-small {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+        margin-top: 10px;
+      }
+      .table-small th, .table-small td {
+        border: 1px solid #d0b487;
+        padding: 5px 6px;
+      }
+      .map {
+        height: 78px;
+        border: 1px solid #d1b786;
+        background: linear-gradient(180deg, #eef1ec 0%, #d7e7d1 100%);
+        margin-top: 8px;
+        position: relative;
+      }
+      .map-dot {
+        position: absolute;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: rgba(102, 120, 50, 0.8);
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.7);
+      }
+      .map-dot:nth-child(1) { left: 24%; top: 30%; }
+      .map-dot:nth-child(2) { left: 48%; top: 42%; }
+      .map-dot:nth-child(3) { left: 63%; top: 36%; }
+      .map-dot:nth-child(4) { left: 72%; top: 56%; }
+      .decision {
+        margin-top: 12px;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      .footer-note {
+        margin-top: 18px;
+        font-size: 13px;
+      }
+      @media print {
+        body { background: white; }
+        .page { width: 100%; margin: 0; padding: 0.3in 0.3in 0.4in; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Phase 1 Project Submission</h1>
+      <div class="subhead">DSO 576 | Python and Agentic Coding for Business Analytics</div>
+
+      <p style="margin: 10px 0 18px; font-size: 15px; font-style: italic; color: #4b2d2d;">
+        Note: We switched our topic from Amazon reviews to a short-term rental marketplace for Los Angeles, and the dashboard focuses on helping users compare neighborhoods, prices, and availability for booking or listing decisions.
+      </p>
+
+      <h2>1 Establish the data fit</h2>
+      <p>
+        I opened the public Airbnb listings file for the Los Angeles market, stored in the workspace as <strong>listings.csv</strong>, from the Inside Airbnb public data archive:
+        <a href="https://insideairbnb.com/get-the-data/">https://insideairbnb.com/get-the-data/</a>.
+      </p>
+
+      <p><strong>Source and scope.</strong> The file contains one row per Airbnb listing. The sample has <strong>43,932 rows</strong> and <strong>19 columns</strong>, covering residential and short-stay listings across Los Angeles-area neighborhoods such as Hollywood, Venice, Santa Monica, Downtown, Long Beach, Pasadena, Beverly Hills, and Glendale. This is a cross-sectional snapshot, not a time-series dataset, so it supports market comparison rather than a dated trend analysis.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Column and source table</th>
+              <th>What it contains</th>
+              <th>How we will use it</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>neighbourhood in listings</td>
+              <td>Neighborhood name for each listing</td>
+              <td>Filter by area and compare local pricing and demand.</td>
+            </tr>
+            <tr>
+              <td>room_type in listings</td>
+              <td>Entire home/apartment, private room, hotel room, or shared room</td>
+              <td>Compare market segments and evaluate booking-type tradeoffs.</td>
+            </tr>
+            <tr>
+              <td>price in listings</td>
+              <td>Nightly price in USD</td>
+              <td>Main affordability metric and central filter for decision support.</td>
+            </tr>
+            <tr>
+              <td>availability_365 in listings</td>
+              <td>Number of nights available over the next 365 days</td>
+              <td>Proxy for occupancy and supply; spot high-demand areas.</td>
+            </tr>
+            <tr>
+              <td>number_of_reviews in listings</td>
+              <td>Total review count</td>
+              <td>Measure proof of market traction and listing activity.</td>
+            </tr>
+            <tr>
+              <td>reviews_per_month in listings</td>
+              <td>Average monthly review activity</td>
+              <td>Estimate recent demand and recency of guest interest.</td>
+            </tr>
+            <tr>
+              <td>latitude and longitude in listings</td>
+              <td>Geographic location for each listing</td>
+              <td>Show a map of density and pricing patterns by area.</td>
+            </tr>
+            <tr>
+              <td>minimum_nights in listings</td>
+              <td>Minimum stay requirement</td>
+              <td>Understand booking flexibility and host expectations.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>What the data can support.</strong> The available data supports a decision dashboard for either travelers or hosts. It can answer questions such as which neighborhoods offer the best balance of price, availability, and review activity, which room types are most competitive, and where supply may be more constrained. The dashboard could support neighborhood and room-type filters, a price-vs-availability scatterplot, average price by area, a ranked listing table, and a map showing listing density and average nightly rate.</p>
+
+      <p>Important missing information includes seasonal demand, amenities, host response time, cancellation policy, and listing photos. Those gaps are manageable: a smaller initial scope can focus on price, neighborhood, room type, availability, and review volume. A second phase could add amenities and calendar data from a separate source to improve conversion and recommendation quality.</p>
+
+      <h2>2 Sketch the dashboard</h2>
+      <p>Below is the main screen concept: a user can choose a neighborhood, room type, and price range, then immediately compare value, demand, and availability before deciding where to stay or what type of listing to launch.</p>
+
+      <div class="sketch">
+        <div class="sketch-box">
+          <div class="mini-title">Airbnb Market Decision Dashboard</div>
+          <div class="filter-row">
+            <span class="pill">Neighborhood: Los Angeles</span>
+            <span class="pill">Room type: All</span>
+            <span class="pill">Price: $50–$500</span>
+            <span class="pill">Availability: 0–365</span>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi"><strong>Avg nightly price</strong><br>$224</div>
+            <div class="kpi"><strong>High-availability listings</strong><br>31%</div>
+            <div class="kpi"><strong>Avg reviews/month</strong><br>1.4</div>
+            <div class="kpi"><strong>Top market</strong><br>Hollywood</div>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart">
+              <strong>Avg price by neighborhood</strong>
+              <div class="bars">
+                <span style="height:55%"></span>
+                <span style="height:70%"></span>
+                <span style="height:60%"></span>
+                <span style="height:78%"></span>
+              </div>
+            </div>
+            <div class="chart">
+              <strong>Availability vs price</strong>
+              <div style="position:relative; height:78px; margin-top:10px; background: linear-gradient(180deg, #f4f6f2, #edf4e7); border:1px solid #d8d9d1;">
+                <div style="position:absolute; left:18%; top:20%; width:9px; height:9px; background:#9e6d48; border-radius:50%;"></div>
+                <div style="position:absolute; left:40%; top:42%; width:9px; height:9px; background:#7d7a78; border-radius:50%;"></div>
+                <div style="position:absolute; left:62%; top:35%; width:9px; height:9px; background:#8da06f; border-radius:50%;"></div>
+                <div style="position:absolute; left:75%; top:58%; width:9px; height:9px; background:#5c6f58; border-radius:50%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap:12px; align-items:start; margin-top:8px;">
+            <div>
+              <div class="mini-title">Top candidate neighborhoods</div>
+              <table class="table-small">
+                <thead>
+                  <tr>
+                    <th>Neighborhood</th>
+                    <th>Avg price</th>
+                    <th>Avail.</th>
+                    <th>Reviews/mo</th>
+                    <th>Signal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Hollywood</td><td>$198</td><td>140 days</td><td>1.8</td><td>Strong demand</td></tr>
+                  <tr><td>Venice</td><td>$260</td><td>110 days</td><td>1.4</td><td>Premium market</td></tr>
+                  <tr><td>Long Beach</td><td>$175</td><td>180 days</td><td>1.2</td><td>Value option</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <div class="mini-title">Map view</div>
+              <div class="map">
+                <div class="map-dot"></div>
+                <div class="map-dot"></div>
+                <div class="map-dot"></div>
+                <div class="map-dot"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="decision">
+            <strong>Decision help:</strong> “For a traveler with a $200 budget, Hollywood and Long Beach show the best value-to-demand tradeoff; for a host, Venice has higher revenue potential but also greater competition.”
+          </div>
+        </div>
+      </div>
+
+      <p class="footer-note">
+        <strong>Annotations:</strong> the sidebar filters rely on <em>neighbourhood</em>, <em>room_type</em>, and <em>price</em>; the charts use <em>price</em>, <em>availability_365</em>, and <em>reviews_per_month</em>; the map is built from <em>latitude</em> and <em>longitude</em>; and the decision signal is a calculated value score combining lower price, higher availability, and stronger review activity.
+      </p>
+
+      <p style="margin-top: 18px; font-size: 15px;"><strong>Repo link:</strong> https://github.com/cynthiaqgao/project</p>
+    </div>
+  </body>
+</html>
