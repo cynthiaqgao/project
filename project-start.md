@@ -1,25 +1,26 @@
 # Project Starting Point
 
 ## Selected project area
-Topic #4 Amazon Review Analysis
+Topic 2. Short-Term Rental Marketplace Health
 
-"An e-commerce product must decide which product listings require better structured information so that customers and AI shopping agents can identify suitable products and substitutes. Using one Amazon category, your team could compare product descriptions, attributes, reviews, variants, prices, and bought-together relationships to identify customer requirements that repeatedly appear in reviews but are absent from or inconsistent with the listing. Amazon Reviews contains review text, ratings, timestamps, helpfulness, and product metadata."
+"A short-term-rental platform (e.g., AirBnB) must decide where to recruit hosts, improve listing quality, or provide pricing and availability guidance. Using multiple cities and quarterly snapshots, your team could identify neighborhood-property segments with changing supply, unusual pricing, weak review performance, frequent host entry or exit, or apparent mismatches between listing characteristics and market activity. Inside Airbnb provides listings, calendars, reviews, neighborhoods, and geographic boundaries."
 
 ## Why our team is interested in it
-Our group is choosing the Amazon Fashion review category because we all care about fashion trends and buying nice clothes. It would be insightful to see if there are any trends or patterns behind what consumers buy and what they think of fashion products. Additionally, the file size is not too big nor too small, so we should have enough information to draw insights from the unstructured data.
+Our group is changing our topic from #4 Amazon Reviews to #2 Short-Term Rental Marketplace Health because we realized that the reviews dataset had too many text columns that were out of our scope to analyze thoroughly. We agreed on our mutual interest in exploring Airbnb listings in Los Angeles since it would help us learn more about the city of the school we are attending. After further examination of the LA Airbnb file, the numeric variables in the listings.csv file will be great information to derive actionable insights and patterns from.
+
 
 ## Candidate Vision A
-Product Manager at a large fashion brand must decide which product features to prioritize in future product designs.
+Airbnb host wishes to see how they can increase their booking rate and overall host rating.
 
 ## Candidate Vision B
-Marketing Manager at a large fashion brand must decide which product attributes to emphasize when promoting its products.
+Airbnb wants to decide which property types to target for recruiting new hosts and improving their listing quality.
 
 ## Core data source we confirmed we can access
-https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023
+https://insideairbnb.com/get-the-data/
 
-We confirm that we are able to access and download the Amazon review datasets.
+We confirm that we are able to access and download the datasets.
 
 ## Three questions we still need to resolve
 1. Who would benefit most from our analysis?
 2. Which features in the dataset should we use for our analysis?
-3. How would we analyze the data? With LLMs? Something else?
+3. What methods are best for analyzing the data?
