@@ -1,0 +1,6 @@
+id,field,original,expected,reason,actual,passed,outlier_flag_checked
+2708,license,,,Absent registration is unknown; do not invent a license.,,True,
+9140,price,,,No observed nightly price; omit only from price denominator.,,True,
+584724,reviews_per_month,,,Never-reviewed listings have no observed monthly review rate; retain null.,,True,
+2732,host_profile_id,1462506335238008418,1462506335238008418,Large identifiers retain every source digit through string loading.,1462506335238008418,True,
+98284,price,2549,2549.0,High price may be a luxury rental; retain original price and flag it.,2549.0,True,True
