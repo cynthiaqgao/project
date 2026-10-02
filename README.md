@@ -10,8 +10,8 @@ This project prepares Los Angeles Airbnb listings for analysis of neighborhood a
 
 - Source: [Inside Airbnb — Get the Data](https://insideairbnb.com/get-the-data/)
 - File: `LA_listings.csv`
-- Snapshot date: **[Enter the snapshot date shown for the downloaded Los Angeles file.]**
-- Download date: **[Enter the date you downloaded the file, if known.]**
+- Snapshot date: Not recorded in the local copy.
+- Download date: Not recorded.
 
 The original CSV is kept unchanged.
 
@@ -42,3 +42,27 @@ From this folder, install the dependency and run the script:
 ```bash
 python -m pip install -r requirements.txt
 python clean_listings.py
+```
+
+The script creates `cleaned_sample.csv` in this folder.
+
+Expected summary:
+
+```text
+Raw shape: (43932, 19)
+Clean shape: (43932, 19)
+Date conversion failures: 0
+Sample rows: 50
+```
+
+## Validation
+
+The final checks confirmed that the row count stayed at 43,932, listing IDs were unique, no names retained leading or trailing whitespace, and date conversion failures were zero. Five record-level checks passed.
+
+The suggestion to read listing IDs as strings was verified by checking the resulting column types and confirming that all listing IDs remained unique.
+
+## GitHub
+
+- Branch: `cleaning-hongjie`
+- Branch URL: https://github.com/cynthiaqgao/project/tree/cleaning-hongjie
+- Cleaning commit: `750bccc`
