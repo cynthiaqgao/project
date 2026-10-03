@@ -35,7 +35,7 @@ python -m venv .venv
 .venv/bin/python build_submission.py
 ```
 
-Alternatively open `kyi_hw6.ipynb`, select the same environment, restart the kernel and run all cells. The notebook invokes the same cleaning and independent verification scripts. No network download is required to clean the supplied source. Installing dependencies requires package access.
+Alternatively open `kyi_module_6_hw.ipynb`, select the same environment, restart the kernel and run all cells. The notebook invokes the same cleaning and independent verification scripts. No network download is required to clean the supplied source. Installing dependencies requires package access.
 
 ## Rules and expected outputs
 

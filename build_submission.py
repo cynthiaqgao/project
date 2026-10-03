@@ -112,7 +112,7 @@ def build():
     p('Codex suggested retaining unknown licenses rather than imputing or deleting them. verify_airbnb.py independently counts empty and N/A source licenses (30,740), confirms exactly 30,740 cleaned null licenses, and confirms all original listing IDs and row order remain. No-review rate handling and preservation of all observed prices are independently checked as well. A separate fresh Python process recreates every cleaning output. This verifies implementation of the suggestion; it does not validate a license or replace student review.')
     page(); title('Reproducibility and limitations')
     item(13,'Test reproducibility','Done',
-         'The notebook was executed from a fresh kernel, and verify_airbnb.py starts the cleaner in a fresh Python process using the preserved source. Nine generated CSV/JSON outputs match byte for byte. All full-data checks pass, including serialization of every identifier and exact membership of all 50 sample rows. Evidence: executed kyi_hw6.ipynb, outputs/verification.json, and outputs/notebook_execution.json.')
+         'The notebook was executed from a fresh kernel, and verify_airbnb.py starts the cleaner in a fresh Python process using the preserved source. Nine generated CSV/JSON outputs match byte for byte. All full-data checks pass, including serialization of every identifier and exact membership of all 50 sample rows. Evidence: executed kyi_module_6_hw.ipynb, outputs/verification.json, and outputs/notebook_execution.json.')
     p('Run instructions','Heading2')
     p('Python 3.10 or newer. From the project directory:<br/><font face="Courier">python -m venv .venv<br/>.venv/bin/python -m pip install -r requirements.txt<br/>.venv/bin/python clean_airbnb.py<br/>.venv/bin/python verify_airbnb.py<br/>.venv/bin/python execute_notebook.py<br/>.venv/bin/python build_submission.py</font>')
     p('All scripts resolve source paths relative to their own location. The backup is created once and never overwritten with differing bytes. outputs/cleaned_listings.csv is the complete result; outputs/cleaned_sample.csv is a real, shareable 50-row subset. Other outputs provide missing counts, metrics, segment summaries, record checks, audit and verification. The PDF is regenerated from those actual results. See README.md for the complete file list.')
@@ -203,7 +203,7 @@ python -m venv .venv
 .venv/bin/python build_submission.py
 ```
 
-Alternatively open `kyi_hw6.ipynb`, select the same environment, restart the kernel and run all cells. The notebook invokes the same cleaning and independent verification scripts. No network download is required to clean the supplied source. Installing dependencies requires package access.
+Alternatively open `kyi_module_6_hw.ipynb`, select the same environment, restart the kernel and run all cells. The notebook invokes the same cleaning and independent verification scripts. No network download is required to clean the supplied source. Installing dependencies requires package access.
 
 ## Rules and expected outputs
 
