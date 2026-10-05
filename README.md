@@ -2,6 +2,12 @@
 
 This branch contains Cynthia Gao's HW 6 data-cleaning script for a Los Angeles short-term-rental dataset. The script preserves the raw data in memory, standardizes selected fields, investigates missing and duplicate records, flags suspicious values, reconciles before/after totals, and verifies representative records.
 
+Github Branch: Cynthia_branch
+
+https://github.com/cynthiaqgao/project/tree/Cynthia_branch
+
+Github Commit ID: cfc3fe91ce8a92e5579c4145adcd76d47d1b9385
+
 ## Data source and version
 
 - **Source:** [Inside Airbnb — Get the Data](https://insideairbnb.com/get-the-data/)
