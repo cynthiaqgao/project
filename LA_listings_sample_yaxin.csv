@@ -2,10 +2,11 @@ id,name,host_id,host_profile_id,host_name,neighbourhood_group,neighbourhood,lati
 2708,"Run Runyon, Beaut Furn Mirror Mini-Suit w/ Firplc!",3008.0,1.4625063336794506e+18,⁨Chas.⁩,City of Los Angeles,Hollywood,34.09625,-118.34605,Private room,67.0,30.0,47,2026-05-26,0.32,2.0,301,3,,True,False
 2732,Zen Life at the Beach,3041.0,1.4625063352380083e+18,Yogapriestess,Other Cities,Santa Monica,34.0044,-118.48095,Private room,214.0,1.0,24,2022-08-21,0.13,2.0,350,0,228269,True,False
 6033,Poolside Serenity Studio,11619.0,1.4625066704430886e+18,Sarah,City of Los Angeles,Woodland Hills,34.16887,-118.64478,Entire home/apt,100.0,30.0,19,2020-03-22,0.09,7.0,270,0,,True,False
+9140,City Place Lofts,28350.0,1.4625070933685809e+18,Wendell,Other Cities,Long Beach,33.77202,-118.18852,Private room,,31.0,389,2019-11-25,2.4,1.0,0,0,,False,False
+584724,The Charlie WeHo Luxurious 2BDR/2BATH Apartment,2881219.0,1.4626114241988303e+18,Dylan,City of Los Angeles,Beverly Grove,34.08507,-118.3697,Entire home/apt,1043.0,30.0,0,,,1.0,363,0,,True,True
 6931,"RUN Runyon, Beau Furn Rms Terrace Hollyw Hill View",3008.0,1.4625063336794506e+18,⁨Chas.⁩,City of Los Angeles,Hollywood,34.09626,-118.34372,Private room,95.0,30.0,39,2025-12-15,0.19,2.0,259,2,,True,False
 7874,HD Wi-Fi E Bellflower Cerritos Lakewood LB LA,21700.0,1.4625069516650985e+18,Henry,Other Cities,Bellflower,33.87687,-118.11444,Private room,113.0,1.0,26,2026-04-02,0.29,4.0,103,9,,True,False
 8021,5-Star Beverly Hills Suite,22460.0,1.4625069637736015e+18,Sherree Strong,City of Los Angeles,Pico-Robertson,34.06016,-118.37911,Private room,96.0,31.0,238,2025-04-27,1.15,1.0,298,0,HSR24-001423,True,False
-9140,City Place Lofts,28350.0,1.4625070933685809e+18,Wendell,Other Cities,Long Beach,33.77202,-118.18852,Private room,,31.0,389,2019-11-25,2.4,1.0,0,0,,False,False
 9376,"Bright Apt, walk to Venice Beach",30319.0,1.4625071283488804e+18,Cristina,City of Los Angeles,Venice,33.99782,-118.47698,Private room,199.0,30.0,54,2022-10-25,0.26,2.0,365,0,,True,False
 11877,Le petit bungalow private entrance + bikes in VB,30484.0,1.4625071306093916e+18,Pascalou,City of Los Angeles,Venice,33.99573,-118.47216,Entire home/apt,115.0,30.0,46,2021-06-01,0.26,3.0,74,0,,True,False
 15089,*The Cottage at Casa Redondo & Rabbit Sanctuary,59169.0,1.462507939718437e+18,Josh,City of Los Angeles,Mid-City,34.04276657104492,-118.35211944580078,Entire home/apt,130.0,30.0,98,2025-12-01,0.48,4.0,351,2,HSR19-000600,True,False
@@ -45,7 +46,6 @@ id,name,host_id,host_profile_id,host_name,neighbourhood_group,neighbourhood,lati
 61578,Find Peace at an Urban Oasis with Floor-to-Ceiling Glass,298123.0,1.4625150410673853e+18,Michael,City of Los Angeles,Venice,33.99122,-118.46898,Entire home/apt,469.0,30.0,26,2026-01-10,0.16,1.0,250,1,,True,False
 61582,Glassell Park Retreat – Walkable + Outdoor Space,298216.0,1.4625150426970086e+18,Robin,City of Los Angeles,Glassell Park,34.11175537109375,-118.23120880126952,Entire home/apt,124.0,30.0,19,2026-01-31,0.11,2.0,182,3,,True,False
 63416,VIEWS! HOLLYWOOD SIGN - DOWNTOWN #1,309512.0,1.462515344909969e+18,Vincenzo,City of Los Angeles,Hollywood Hills,34.11343659747514,-118.32398830704685,Private room,320.0,2.0,184,2026-05-07,0.98,3.0,145,6,HSR25-000067,True,False
-584724,The Charlie WeHo Luxurious 2BDR/2BATH Apartment,2881219.0,1.4626114241988303e+18,Dylan,City of Los Angeles,Beverly Grove,34.08507,-118.3697,Entire home/apt,1043.0,30.0,0,,,1.0,363,0,,True,True
 586709,Bungalow in the sky,2892483.0,1.4625268816770721e+18,Ernesto,City of Los Angeles,Echo Park,34.09322,-118.25024,Private room,280.0,4.0,127,2026-05-31,0.77,2.0,60,11,HSR19-000453,True,False
 589056,Home in the Heart of Hollywood,2904967.0,1.4625269518490573e+18,Frankie,City of Los Angeles,Hollywood,34.09517,-118.34399,Entire home/apt,201.0,30.0,9,2023-08-24,0.06,1.0,83,0,,True,False
 590936,Loft for sublet Downtown LA,2915924.0,1.4626123624214228e+18,Petr,City of Los Angeles,Lincoln Heights,34.07754623867473,-118.22110261402388,Entire home/apt,,30.0,55,2021-07-03,0.39,1.0,0,0,HSR20-000690,False,False
