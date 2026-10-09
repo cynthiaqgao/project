@@ -1,0 +1,9 @@
+# Keep the original downloaded dataset local. Publish the reproducible cleaned
+# dataset and supporting summaries from outputs/ for the homework review.
+listings.csv
+
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+*.zip
+Poan Warner Chiang_airbnb_homework6/

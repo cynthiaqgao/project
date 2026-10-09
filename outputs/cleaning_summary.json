@@ -1,0 +1,129 @@
+{
+  "conversion_failures": {
+    "availability_365": 0,
+    "calculated_host_listings_count": 0,
+    "last_review": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "minimum_nights": 0,
+    "number_of_reviews": 0,
+    "number_of_reviews_ltm": 0,
+    "price": 0,
+    "reviews_per_month": 0
+  },
+  "date_range": {
+    "earliest_last_review": "2011-05-21",
+    "latest_last_review": "2026-06-22"
+  },
+  "grain": {
+    "input": "one Airbnb listing per row",
+    "output": "one Airbnb listing per row",
+    "unique_key": "id"
+  },
+  "invalid_value_checks": {
+    "availability_outside_0_365": 0,
+    "latitude_outside_global_range": 0,
+    "longitude_outside_global_range": 0,
+    "ltm_reviews_above_total": 0,
+    "negative_ltm_reviews": 0,
+    "negative_total_reviews": 0,
+    "nonpositive_minimum_nights": 0,
+    "nonpositive_price": 0,
+    "positive_reviews_without_last_review": 0,
+    "positive_reviews_without_review_rate": 0,
+    "zero_reviews_with_last_review": 0
+  },
+  "metric_denominators": {
+    "availability_rows": 43932,
+    "price_nonmissing_rows": 38362,
+    "review_activity_rows": 43932
+  },
+  "missing_after": {
+    "availability_365": 0,
+    "calculated_host_listings_count": 181,
+    "host_id": 181,
+    "host_name": 384,
+    "host_profile_id": 395,
+    "id": 0,
+    "last_review": 11311,
+    "latitude": 0,
+    "license": 30736,
+    "longitude": 0,
+    "minimum_nights": 11,
+    "name": 0,
+    "neighbourhood": 0,
+    "neighbourhood_group": 0,
+    "number_of_reviews": 0,
+    "number_of_reviews_ltm": 0,
+    "price": 5570,
+    "reviews_per_month": 0,
+    "room_type": 0
+  },
+  "missing_before": {
+    "availability_365": 0,
+    "calculated_host_listings_count": 181,
+    "host_id": 181,
+    "host_name": 384,
+    "host_profile_id": 395,
+    "id": 0,
+    "last_review": 11311,
+    "latitude": 0,
+    "license": 30736,
+    "longitude": 0,
+    "minimum_nights": 11,
+    "name": 0,
+    "neighbourhood": 0,
+    "neighbourhood_group": 0,
+    "number_of_reviews": 0,
+    "number_of_reviews_ltm": 0,
+    "price": 5570,
+    "reviews_per_month": 11311,
+    "room_type": 0
+  },
+  "outputs": {
+    "cleaned_file": "listings_cleaned.csv",
+    "cleaned_rows": 43932,
+    "comparison_file": "market_comparison.csv",
+    "comparison_rows": 12,
+    "record_checks_file": "five_record_checks.csv",
+    "record_checks_passed": 5,
+    "sample_file": "listings_cleaned_sample.csv",
+    "sample_rows": 50
+  },
+  "rows": {
+    "difference": 0,
+    "duplicate_ids": 0,
+    "exact_duplicates_removed": 0,
+    "final": 43932,
+    "starting": 43932
+  },
+  "rules_applied": {
+    "host_identity_missing_flagged": 395,
+    "last_review_after_snapshot_flagged": 97,
+    "license_missing": 30736,
+    "license_reported": 13196,
+    "minimum_nights_missing_flagged": 11,
+    "minimum_nights_over_365_flagged": 24,
+    "price_99th_percentile": 2905.1699999999983,
+    "price_missing_flagged": 5570,
+    "price_outliers_flagged": 384,
+    "review_rates_filled_with_zero": 11311,
+    "reviews_ltm_over_365_flagged": 2
+  },
+  "source": {
+    "file": "listings.csv",
+    "label": "Los Angeles listings snapshot supplied to the team",
+    "local_file_modified_date": "2026-09-28",
+    "official_snapshot_path_date": "2026-06-15",
+    "sha256": "d3b34461d0dc409dbe9f99573e3343e342dbcefbb0767b4b62d60b3beb4aceb2",
+    "url": "https://insideairbnb.com/get-the-data/"
+  },
+  "text_values_changed": {
+    "host_name": 257,
+    "license": 2,
+    "name": 1030,
+    "neighbourhood": 0,
+    "neighbourhood_group": 0,
+    "room_type": 0
+  }
+}

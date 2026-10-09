@@ -1,0 +1,6 @@
+case,listing_id,reason,original_value,expected_value,actual_value,matches_expected
+invisible Unicode format characters,2708,remove invisible formatting but preserve the host label,'\u2068Chas.\u2069','Chas.','Chas.',True
+missing price retained,9140,do not invent a nightly price,<missing>,price missing; flag True,price missing; flag True,True
+structurally missing review rate,584724,zero total reviews support a zero observed monthly review rate,reviews=0; reviews_per_month=<missing>,reviews_per_month=0; imputed flag True,reviews_per_month=0.0; imputed flag True,True
+unusually long minimum stay,1079335,retain a plausible policy value but flag it,366,minimum_nights=366; over-365 flag True,minimum_nights=366; over-365 flag True,True
+review date after snapshot label,4838438,retain source value but flag the timing discrepancy,2026-06-18,last_review=2026-06-18; after-snapshot flag True,last_review=2026-06-18; after-snapshot flag True,True

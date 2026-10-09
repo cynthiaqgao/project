@@ -1,0 +1,51 @@
+id,neighbourhood_group,neighbourhood,room_type,price,minimum_nights,number_of_reviews,last_review,reviews_per_month,calculated_host_listings_count,availability_365,number_of_reviews_ltm,price_missing_flag,price_outlier_flag,minimum_nights_missing_flag,minimum_nights_over_365_flag,reviews_per_month_imputed_flag,last_review_after_snapshot_flag,reviews_ltm_over_365_flag,host_identity_missing_flag,license_reported,sample_reason
+1097213370766560885,Other Cities,Hermosa Beach,Entire home/apt,1040.0,28,1,2025-09-10,0.11,1,263,1,False,False,False,False,False,False,False,False,False,deterministic random context row
+1131045630113454296,Other Cities,Pasadena,Entire home/apt,,5,8,2025-12-04,0.35,1,0,4,True,,False,False,False,False,False,False,False,deterministic random context row
+1554888015196366986,City of Los Angeles,Mid-Wilshire,Entire home/apt,148.0,30,0,,0.0,67,359,0,False,False,False,False,True,False,False,False,False,deterministic random context row
+1592864049736890269,Other Cities,Monrovia,Entire home/apt,219.0,2,9,2026-06-14,1.97,2,106,9,False,False,False,False,False,False,False,False,False,deterministic random context row
+1655291800625226727,Other Cities,Hawthorne,Entire home/apt,222.0,1,6,2026-05-28,2.86,8,360,6,False,False,False,False,False,False,False,False,False,deterministic random context row
+1701693421687978527,City of Los Angeles,Pacoima,Private room,157.0,30,0,,0.0,4,180,0,False,False,False,False,True,False,False,False,False,deterministic random context row
+3963003,City of Los Angeles,Venice,Entire home/apt,922.0,1,368,2026-06-11,2.56,1,277,36,False,False,False,False,False,False,False,False,True,deterministic random context row
+697255987794577463,Other Cities,Long Beach,Entire home/apt,237.0,1,19,2025-03-06,0.44,2,327,0,False,False,False,False,False,False,False,False,True,deterministic random context row
+869623677472557988,City of Los Angeles,Fairfax,Entire home/apt,336.0,30,3,2024-07-08,0.09,11,270,0,False,False,False,False,False,False,False,False,False,deterministic random context row
+1039099071455403109,Other Cities,Burbank,Private room,,1,0,,0.0,13,0,0,True,,False,False,True,False,False,True,False,host identity incomplete
+1039884282594973989,Unincorporated Areas,Marina del Rey,Private room,289.0,1,129,2026-06-13,5.09,,349,58,False,False,False,False,False,False,False,True,False,host identity incomplete
+1040244846400943126,Other Cities,Santa Monica,Private room,754.0,1,2,2025-11-16,0.15,2,292,1,False,False,False,False,False,False,False,True,False,host identity incomplete
+984831875844749837,Other Cities,Burbank,Private room,,1,0,,0.0,13,0,0,True,,False,False,True,False,False,True,False,host identity incomplete
+984831985776273275,Other Cities,Burbank,Private room,,1,0,,0.0,13,0,0,True,,False,False,True,False,False,True,False,host identity incomplete
+15089,City of Los Angeles,Mid-City,Entire home/apt,130.0,30,98,2025-12-01,0.48,4,351,2,False,False,False,False,False,False,False,False,True,license reported
+15333,City of Los Angeles,Valley Village,Entire home/apt,896.0,1,17,2026-05-14,0.14,2,359,6,False,False,False,False,False,False,False,False,True,license reported
+18041,City of Los Angeles,Venice,Entire home/apt,698.0,2,5,2024-03-26,0.06,3,23,0,False,False,False,False,False,False,False,False,True,license reported
+2732,Other Cities,Santa Monica,Private room,214.0,1,24,2022-08-21,0.13,2,350,0,False,False,False,False,False,False,False,False,True,license reported
+8021,City of Los Angeles,Pico-Robertson,Private room,96.0,31,238,2025-04-27,1.15,1,298,0,False,False,False,False,False,False,False,False,True,license reported
+2436587,City of Los Angeles,Mar Vista,Private room,72.0,,212,2026-03-04,1.44,6,0,1,False,False,True,,False,False,False,False,False,minimum nights missing
+31472416,City of Los Angeles,Hollywood Hills,Entire home/apt,505.0,,80,2026-06-16,0.88,1,0,1,False,False,True,,False,True,False,False,True,minimum nights missing
+40807298,City of Los Angeles,Hollywood,Entire home/apt,240.0,,479,2026-06-16,6.07,4,0,84,False,False,True,,False,True,False,False,True,minimum nights missing
+46891097,City of Los Angeles,Beverly Grove,Entire home/apt,,,1,2024-12-20,0.05,254,0,0,True,,True,,False,False,False,False,False,minimum nights missing
+49017910,City of Los Angeles,Mid-City,Entire home/apt,1775.0,,35,2026-06-16,1.42,1,0,17,False,False,True,,False,True,False,False,True,minimum nights missing
+1079335,Other Cities,West Hollywood,Entire home/apt,,366,1,2017-09-19,0.01,1,358,0,True,,False,True,False,False,False,False,False,minimum nights over 365
+1742144,Other Cities,Pasadena,Entire home/apt,,750,16,2017-06-25,0.1,2,365,0,True,,False,True,False,False,False,False,False,minimum nights over 365
+2007744,City of Los Angeles,Mar Vista,Entire home/apt,,380,113,2026-03-23,0.76,5,342,4,True,,False,True,False,False,False,False,False,minimum nights over 365
+2192814,City of Los Angeles,Fairfax,Entire home/apt,,700,11,2020-09-27,0.07,4,365,0,True,,False,True,False,False,False,False,True,minimum nights over 365
+4105785,City of Los Angeles,Fairfax,Entire home/apt,,700,15,2021-02-25,0.11,4,365,0,True,,False,True,False,False,False,False,True,minimum nights over 365
+33447,Other Cities,Malibu,Entire home/apt,,30,331,2020-03-16,1.7,1,0,0,True,,False,False,False,False,False,False,False,missing price
+47794,Other Cities,Culver City,Private room,,2,3,2015-09-18,0.02,1,0,0,True,,False,False,False,False,False,False,False,missing price
+51307,City of Los Angeles,Atwater Village,Entire home/apt,,30,137,2020-12-13,0.73,2,0,0,True,,False,False,False,False,False,False,False,missing price
+590936,City of Los Angeles,Lincoln Heights,Entire home/apt,,30,55,2021-07-03,0.39,1,0,0,True,,False,False,False,False,False,False,True,missing price
+9140,Other Cities,Long Beach,Private room,,31,389,2019-11-25,2.4,1,0,0,True,,False,False,False,False,False,False,False,missing price
+1101502039579994799,City of Los Angeles,Downtown,Private room,152.0,1,1077,2026-06-19,42.97,3,329,795,False,False,False,False,False,True,True,True,False,more than 365 reviews in last year
+1101502039846947341,City of Los Angeles,Downtown,Private room,168.0,1,1386,2026-06-13,54.5,,362,1027,False,False,False,False,False,False,True,True,False,more than 365 reviews in last year
+1236639,Other Cities,Rancho Palos Verdes,Private room,5712.0,1,265,2017-09-25,1.68,1,365,0,False,True,False,False,False,False,False,False,False,price above p99
+206806,Other Cities,Beverly Hills,Entire home/apt,3883.0,30,0,,0.0,1,365,0,False,True,False,False,True,False,False,False,False,price above p99
+2699338,Other Cities,Hermosa Beach,Entire home/apt,3010.0,1,12,2026-05-21,0.1,1,324,7,False,True,False,False,False,False,False,False,False,price above p99
+4483969,City of Los Angeles,Windsor Square,Entire home/apt,3245.0,2,3,2018-01-02,0.02,1,175,0,False,True,False,False,False,False,False,False,True,price above p99
+6749243,Unincorporated Areas,Citrus,Private room,5718.0,1,25,2016-08-08,0.19,1,137,0,False,True,False,False,False,False,False,False,False,price above p99
+11302104,Other Cities,Santa Monica,Entire home/apt,113.0,30,18,2026-06-16,0.16,17,34,4,False,False,False,False,False,True,False,False,False,review date after snapshot label
+12516565,Other Cities,Burbank,Entire home/apt,791.0,2,250,2026-06-16,2.06,1,303,18,False,False,False,False,False,True,False,False,False,review date after snapshot label
+14224977,Other Cities,Inglewood,Entire home/apt,239.0,1,314,2026-06-16,6.57,2,15,116,False,False,False,False,False,True,False,False,True,review date after snapshot label
+4838438,City of Los Angeles,Mid-Wilshire,Entire home/apt,,31,27,2026-06-18,0.65,2,12,5,True,,False,False,False,True,False,False,False,review date after snapshot label
+7128675,City of Los Angeles,Hollywood Hills,Entire home/apt,840.0,1,73,2026-06-16,0.65,1,312,36,False,False,False,False,False,True,False,False,True,review date after snapshot label
+408035,City of Los Angeles,Mid-Wilshire,Entire home/apt,89.0,30,0,,0.0,1,351,0,False,False,False,False,True,False,False,False,False,review rate filled for zero reviews
+413761,Other Cities,Santa Monica,Entire home/apt,911.0,31,0,,0.0,1,358,0,False,False,False,False,True,False,False,False,False,review rate filled for zero reviews
+584724,City of Los Angeles,Beverly Grove,Entire home/apt,1043.0,30,0,,0.0,1,363,0,False,False,False,False,True,False,False,False,False,review rate filled for zero reviews
+658342,City of Los Angeles,Baldwin Hills/Crenshaw,Private room,254.0,30,0,,0.0,1,87,0,False,False,False,False,True,False,False,False,False,review rate filled for zero reviews

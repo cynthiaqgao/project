@@ -1,0 +1,13 @@
+neighbourhood_group,room_type,listing_rows,listings_with_price,median_price,median_availability_365,total_reviews_ltm,median_reviews_ltm
+City of Los Angeles,Entire home/apt,16133,13860,243.0,268.0,92447,0.0
+City of Los Angeles,Private room,5255,4579,69.0,290.0,20075,0.0
+City of Los Angeles,Shared room,203,195,30.0,345.0,244,0.0
+City of Los Angeles,Hotel room,177,173,318.0,301.0,204,0.0
+Other Cities,Entire home/apt,13254,11806,308.0,245.0,167586,4.0
+Other Cities,Private room,4531,3871,111.0,259.0,41617,1.0
+Other Cities,Hotel room,220,213,330.0,339.5,595,0.0
+Other Cities,Shared room,73,69,51.0,347.0,844,3.0
+Unincorporated Areas,Entire home/apt,3067,2771,320.0,253.0,45853,6.0
+Unincorporated Areas,Private room,985,795,92.0,235.0,7770,2.0
+Unincorporated Areas,Hotel room,18,14,251.0,355.5,36,0.0
+Unincorporated Areas,Shared room,16,16,99.5,307.0,222,1.5
