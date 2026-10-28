@@ -62,3 +62,18 @@ Median price is the main metric. All-market price n=38,362, mean=$383.14 and med
 Calendar availability is not actual occupancy; unavailable nights can be booked or blocked. Review activity is not booking conversion. Missing prices can bias observed-price comparisons. Provided licenses and exemption claims are unverified; missing licenses do not establish noncompliance. The 30-night filter is analytical, not legal. `host_profile_id` meaning is undocumented and it is not substituted for `host_id`. No external merge is performed. Original collection metadata and richer data are needed for temporal, regulatory or booking conclusions.
 
 Method references: https://insideairbnb.com/data-assumptions/ and https://www.airbnb.com/help/article/1634 . Consulted October 2, 2026.
+
+## Phase 3 traveler dashboard
+
+The local dashboard implements the traveler comparison contract in `BUILD_SPEC.md`.
+From this project folder, install the pinned UI requirements and start Streamlit:
+
+```bash
+python -m pip install -r phase2/requirements-dashboard.txt
+python -m streamlit run app.py
+```
+
+It uses the canonical snapshot `phase2/outputs/listings.csv`; if that file is
+missing, rebuild it with `python -m phase2.build`. The interface is exploratory:
+it does not show live Airbnb availability, dated trip quotes, ratings, or booking
+confirmation.

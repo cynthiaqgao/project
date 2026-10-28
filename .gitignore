@@ -19,3 +19,4 @@ __pycache__/
 !outputs/metrics.csv
 !outputs/missing_counts.csv
 !outputs/segment_summary.csv
+!phase2/outputs/*.csv
