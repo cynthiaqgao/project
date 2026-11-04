@@ -5,7 +5,7 @@ using Inside Airbnb listing data.
 
 | | Link |
 |---|---|
-| Live app | [_add the Streamlit Community Cloud URL_](https://project-3qwdutane3pfvjizjpfdpx.streamlit.app/) |
+| Live app | https://project-3qwdutane3pfvjizjpfdpx.streamlit.app/ |
 | Demo video | _add the video link_ |
 | Repository | https://github.com/cynthiaqgao/project (branch `main`) |
 
