@@ -1,4 +1,4 @@
-# LA Stay Shortlist: Los Angeles Airbnb traveler dashboard
+# Phase 3: LA Stay Shortlist, a Los Angeles Airbnb traveler dashboard
 
 DSO 576 team project, Phase 3 MVP. A Streamlit dashboard that helps a traveler plan a Los Angeles stay
 using Inside Airbnb listing data.
@@ -67,4 +67,3 @@ Entry file `app.py`; page views in `views/`; metric logic in `phase2/backend.py`
 - `BUILD_SPEC.md`: dashboard specification and metric definitions
 - `phase2/DATA_CONTRACT.md`: canonical data fields and rules
 - `DASHBOARD_SHARING.md`: deployment and sharing steps
-- `MODULE6_CLEANING.md`: earlier individual Module 6 cleaning work
