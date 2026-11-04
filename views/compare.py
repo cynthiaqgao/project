@@ -6,8 +6,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from .common import (CORAL, INK, TEAL, add_small_metric_flags, number, panel_header, pct, section,
-                     stat_cards, style_fig, table_formats, usd)
+from .common import CORAL, INK, TEAL, airbnb_search, info, number, panel_header, pct, style_fig, usd
 
 
 def _range_chart(a: pd.Series, b: pd.Series):
@@ -25,78 +24,86 @@ def _range_chart(a: pd.Series, b: pd.Series):
             x=[row.median_price], y=[label], mode="markers+text", name=label,
             marker=dict(color=color, size=16, line=dict(color="white", width=2)),
             text=[usd(row.median_price)], textposition="top center", textfont=dict(color=INK, size=13),
-            hovertemplate=(f"<b>{html.escape(str(row.neighbourhood))}</b><br>Median ${row.median_price:,.0f}/night"
-                           f"<br>Middle 50%: ${row.price_p25:,.0f}–${row.price_p75:,.0f}"
-                           f"<br>price_n {int(row.price_n):,}<extra></extra>"),
+            hovertemplate=(f"<b>{html.escape(str(row.neighbourhood))}</b><br>Typical ${row.median_price:,.0f}/night"
+                           f"<br>Most places ${row.price_p25:,.0f}–${row.price_p75:,.0f}<extra></extra>"),
         ))
     upper = max(float(a.price_p75) if pd.notna(a.price_p75) else 0, float(b.price_p75) if pd.notna(b.price_p75) else 0)
     style_fig(fig, height=230)
-    fig.update_xaxes(range=[0, max(upper * 1.1, 1)], title="Listed price (USD/night)", tickprefix="$")
+    fig.update_xaxes(range=[0, max(upper * 1.1, 1)], title="Price per night", tickprefix="$")
     # Reversed category range with padding keeps A on top and its value label inside the plot.
     fig.update_yaxes(range=[1.6, -0.8], showgrid=False, title=None)
     fig.update_layout(showlegend=False, margin=dict(l=10, r=20, t=30, b=10))
     return fig
 
 
+def _card(row: pd.Series, role: str, color: str, filters) -> str:
+    budget_on = filters.budget_usd is not None
+    rows = [
+        ("✓", f"Fits your ${filters.budget_usd:,.0f} budget" if budget_on else "Fits your budget",
+         pct(row.within_budget_share, 0) if budget_on else "Set a budget"),
+        ("⌂", "Places to choose from", number(row.listing_count)),
+        ("★", "Have guest reviews", pct(row.reviewed_share, 0)),
+        ("✎", "Typical number of reviews", number(row.median_total_reviews)),
+        ("◷", "Open nights per year", number(row.median_available_nights)),
+    ]
+    body = "".join(f'<div class="cmp-row"><span><i>{icon}</i>{html.escape(label)}</span><b>{value}</b></div>'
+                   for icon, label, value in rows)
+    price_tip = (f"Median listed price per night across {number(row.price_n)} priced places "
+                 f"({number(row.missing_price_n)} without a price are left out). Excludes taxes and fees.")
+    range_text = (f"Most places {usd(row.price_p25)} – {usd(row.price_p75)}"
+                  if pd.notna(row.price_p25) else "No prices available")
+    return (
+        f'<div class="cmp-card"><div class="cmp-head"><span class="cmp-badge" style="background:{color}">'
+        f'{role}</span><div><div class="cmp-role">Neighborhood {role}</div>'
+        f'<h3>{html.escape(str(row.neighbourhood))}</h3></div></div>'
+        f'<div class="cmp-price"><b>{usd(row.median_price)}</b>night · typical{info(price_tip)}</div>'
+        f'<div class="cmp-range">{range_text}{info("Middle half of prices: 25th to 75th percentile.")}</div>'
+        f'{body}</div>'
+    )
+
+
+def _verdict(a: pd.Series, b: pd.Series, filters) -> str:
+    # Price differences need 30+ priced places on both sides (display rule).
+    if min(int(a.price_n), int(b.price_n)) < 30 or pd.isna(a.median_price) or pd.isna(b.median_price):
+        return ("<b>Not enough priced places to compare prices here.</b>"
+                "<small>Try another room type or wider filters.</small>")
+    diff = float(a.median_price - b.median_price)
+    cheaper, pricier = (a, b) if diff < 0 else (b, a)
+    if abs(diff) < 1:
+        headline = (f"<b>{html.escape(str(a.neighbourhood))}</b> and <b>{html.escape(str(b.neighbourhood))}</b> "
+                    "have about the same typical price.")
+    else:
+        share = abs(diff) / float(pricier.median_price)
+        headline = (f"<b>{html.escape(str(cheaper.neighbourhood))}</b> is typically <b>{usd(abs(diff))} cheaper</b> "
+                    f"per night than {html.escape(str(pricier.neighbourhood))} ({share:.0%} less).")
+    if filters.budget_usd is not None and pd.notna(a.within_budget_share) and pd.notna(b.within_budget_share):
+        detail = (f"Within ${filters.budget_usd:,.0f}/night: {pct(a.within_budget_share, 0)} of places in "
+                  f"{html.escape(str(a.neighbourhood))} vs {pct(b.within_budget_share, 0)} in "
+                  f"{html.escape(str(b.neighbourhood))}.")
+    else:
+        detail = "Pick a nightly budget above to see how many places fit it."
+    return f"{headline}<small>{detail}</small>"
+
+
 def render_compare(frame: pd.DataFrame, filters) -> None:
     if frame.empty:
-        st.info("No comparison rows are available under the selected filters.")
+        st.info("No comparison is available under these filters.")
         return
     a, b = frame.iloc[0], frame.iloc[1]
-    budget_on = filters.budget_usd is not None
+    st.markdown(f'<div class="verdict">{_verdict(a, b, filters)}</div>', unsafe_allow_html=True)
     cols = st.columns(2)
-    for column, row, role, color in zip(cols, (a, b), ("Comparison A", "Reference B"), (CORAL, TEAL)):
-        with column, st.container(key=f"panel_compare_{role[-1]}"):
-            st.markdown(
-                f'<div class="room-chip"><i style="background:{color}"></i>{role} · '
-                f'{html.escape(str(row.neighbourhood))}</div>',
-                unsafe_allow_html=True,
-            )
-            stat_cards([
-                ("$", "Median nightly price", usd(row.median_price),
-                 f"Middle 50%: {usd(row.price_p25)}–{usd(row.price_p75)} · price_n={number(row.price_n)}"),
-                ("✓", "Within budget", pct(row.within_budget_share) if budget_on else "Set a budget",
-                 f"{number(row.within_budget_n)} of {number(row.price_n)} priced · pre-budget" if budget_on
-                 else "Choose a nightly budget above"),
-            ])
-            st.markdown(
-                f"**{number(row.listing_count)}** matching listings · {number(row.missing_price_n)} missing prices  \n"
-                f"Reviewed listings: **{pct(row.reviewed_share)}**  \n"
-                f"Median total reviews: **{number(row.median_total_reviews)}** (n={number(row.review_n)})  \n"
-                f"Median source last-12-month reviews: **{number(row.median_reviews_ltm)}** (n={number(row.review_ltm_n)})  \n"
-                f"Median source calendar availability: **{number(row.median_available_nights)} nights** (n={number(row.availability_n)})"
-            )
-
+    room = filters.room_types[0]
+    for col, row, role, color in ((cols[0], a, "A", CORAL), (cols[1], b, "B", TEAL)):
+        col.markdown(_card(row, role, color, filters), unsafe_allow_html=True)
+        col.link_button(f"Search {row.neighbourhood} on Airbnb ↗",
+                        airbnb_search(str(row.neighbourhood), room, filters.budget_usd), width="stretch")
+    st.write("")
     with st.container(key="panel_compare_range"):
-        panel_header("Price spread · pre-budget population", "Typical price and middle 50% range",
-                     "Dot = median listed USD/night; bar = 25th–75th percentile. Same room type and filters for both.")
+        panel_header("Price range", "Typical price and where most places fall",
+                     "Dot = median price per night; bar = middle half of prices (25th–75th percentile). "
+                     "Counted before the budget filter.")
         if pd.isna(a.median_price) and pd.isna(b.median_price):
-            st.info("Neither neighborhood has observed prices under these filters.")
+            st.info("Neither neighborhood has prices under these filters.")
         else:
-            st.plotly_chart(_range_chart(a, b), width="stretch", key="compare_range", config={"displayModeBar": False})
-
-    section("A minus B", "Differences", "A is the comparison; B is the reference.")
-    if min(int(a.price_n), int(b.price_n)) >= 30:
-        price_delta = (usd(a.median_price - b.median_price)
-                       if pd.notna(a.median_price) and pd.notna(b.median_price) else "N/A")
-        relative = (pct(a.median_price / b.median_price - 1)
-                    if pd.notna(a.median_price) and pd.notna(b.median_price) and b.median_price > 0 else "N/A")
-        if budget_on and pd.notna(a.within_budget_share) and pd.notna(b.within_budget_share):
-            share_delta = f"{100 * (a.within_budget_share - b.within_budget_share):+.1f} pp"
-        else:
-            share_delta = "Set a budget" if not budget_on else "N/A"
-        stat_cards([
-            ("$", "Median price difference", price_delta, "A − B, listed USD/night"),
-            ("%", "Relative price difference", relative, "A ÷ B − 1"),
-            ("✓", "Budget share difference", share_delta, "Percentage points, pre-budget"),
-            ("★", "Reviewed share difference",
-             f"{100 * (a.reviewed_share - b.reviewed_share):+.1f} pp"
-             if pd.notna(a.reviewed_share) and pd.notna(b.reviewed_share) else "N/A",
-             "Percentage points"),
-        ])
-    else:
-        st.warning("At least one neighborhood has fewer than 30 observed prices, so no numeric price difference "
-                   "or winner is shown. This is a display rule, not statistical significance.")
-    with st.expander("Comparison table"):
-        table = add_small_metric_flags(frame)
-        st.dataframe(table.style.format(table_formats(table), na_rep="N/A"), hide_index=True, width="stretch")
+            st.plotly_chart(_range_chart(a, b), width="stretch", key="compare_range",
+                            config={"displayModeBar": False})

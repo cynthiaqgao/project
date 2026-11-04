@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "tests_run": 14,
+  "failures": 0,
+  "errors": 0,
+  "checks": [
+    "test_aggregation_weighting_and_ranking_denominator",
+    "test_bad_controls",
+    "test_cleaner_rejects_conflicting_ids_and_float_ids",
+    "test_exact_stay_boundary_missing_prices_and_coordinate_screen",
+    "test_fresh_process_rebuild",
+    "test_full_source_preserved",
+    "test_geography_and_cdf",
+    "test_like_for_like_comparison",
+    "test_map_tooltip_keeps_population_denominators_separate",
+    "test_nulls_not_zero_and_empty_contract",
+    "test_reviewed_share_uses_all_selected_rows",
+    "test_room_type_kpis_never_pool",
+    "test_segment_aggregates_match_listing_formulas",
+    "test_traveler_trip_and_budget_independently"
+  ],
+  "source_sha256": "16007ed61afb75ffe44a69e7296bd50a71d61b2cce7cf885eb9d71d1dbd6f289",
+  "note": "Automated verification; not a fresh-agent build or team approval."
+}

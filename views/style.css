@@ -106,3 +106,48 @@ html, body, .stApp, .stApp p, .stApp li, .stApp label, .stApp input, .stApp butt
   .stat-grid { grid-template-columns:1fr; gap:10px; } .stat-card { min-height:auto; padding:14px 16px; }
   .stat-value { font-size:26px; }
 }
+
+/* ---------- Info tooltips ---------- */
+.info { position:relative; display:inline-grid; place-items:center; width:17px; height:17px; margin-left:7px;
+  border-radius:50%; border:1.5px solid #B0B0B0; color:#717171 !important; font:800 10px/1 Georgia, serif;
+  font-style:italic; cursor:help; vertical-align:middle; letter-spacing:0; text-transform:none; }
+.info:hover, .info:focus { border-color:var(--coral); color:var(--coral) !important; outline:none; }
+.info .tip { visibility:hidden; opacity:0; position:absolute; z-index:9999; top:150%; left:50%;
+  transform:translateX(-50%); width:260px; background:#222222; color:#FFFFFF !important; padding:10px 12px;
+  border-radius:10px; font:500 12px/1.5 'Nunito Sans', sans-serif; font-style:normal; text-align:left;
+  white-space:normal; letter-spacing:0; text-transform:none; box-shadow:0 8px 24px rgba(0,0,0,.18);
+  transition:opacity .12s; pointer-events:none; }
+.info:hover .tip, .info:focus .tip { visibility:visible; opacity:1; }
+.stat-card:nth-child(4) .info .tip, .stat-grid.two .stat-card:nth-child(2) .info .tip { left:auto; right:-12px; transform:none; }
+.stat-card, .section-heading, [class*="st-key-panel_"], [data-testid="stMarkdownContainer"] { overflow:visible !important; }
+
+/* ---------- Filter bar alignment: equal boxes in a 3 × 2 grid ---------- */
+.st-key-filter_bar [data-baseweb="select"] > div { min-height:42px; max-height:42px; overflow-y:auto; }
+.st-key-filter_bar [data-testid="stNumberInputContainer"] { min-height:42px; }
+.st-key-filter_bar [data-testid="stCheckbox"] { min-height:42px; display:flex; align-items:center; }
+
+/* ---------- Compare: Airbnb-style cards ---------- */
+.cmp-card { background:#FFFFFF; border:1px solid var(--line); border-radius:20px; padding:24px 26px;
+  box-shadow:0 6px 24px rgba(34,34,34,.08); height:100%; }
+.cmp-head { display:flex; gap:12px; align-items:center; margin-bottom:18px; }
+.cmp-badge { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; color:#fff !important;
+  font-weight:800; font-size:16px; flex:none; }
+.cmp-role { font-size:11px; letter-spacing:.14em; font-weight:800; color:var(--muted); text-transform:uppercase; }
+.cmp-head h3 { font-size:24px; font-weight:800; margin:0; padding:0; letter-spacing:-.02em; }
+.cmp-price { font-size:15px; color:var(--muted); }
+.cmp-price b { font-size:34px; color:var(--ink); letter-spacing:-.03em; margin-right:4px; }
+.cmp-range { font-size:14px; color:var(--muted); margin:2px 0 16px; }
+.cmp-row { display:flex; justify-content:space-between; align-items:center; padding:13px 0;
+  border-top:1px solid var(--line); font-size:15px; color:#444; }
+.cmp-row b { color:var(--ink); font-size:16px; }
+.cmp-row span i { font-style:normal; display:inline-block; width:24px; color:var(--muted); }
+.verdict { background:#FFFFFF; border:1px solid var(--line); border-left:5px solid var(--coral); border-radius:14px;
+  padding:18px 22px; margin:18px 0 6px; box-shadow:var(--card-shadow); font-size:16px; line-height:1.6; }
+.verdict b { color:var(--ink); }
+.verdict small { display:block; color:var(--muted); font-size:13px; }
+
+/* ---------- Map locator ---------- */
+.map-legend-note { font-size:13px; color:var(--muted); margin:4px 0 0; }
+
+[data-testid="stHeaderActionElements"] { display:none !important; }
+.stat-label { display:flex; align-items:center; flex-wrap:wrap; }

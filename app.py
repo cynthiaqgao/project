@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parent
 CANONICAL = ROOT / "phase2" / "outputs" / "listings.csv"
 ALL_ROOMS = "All room types (shown separately)"
 STAY_OPTIONS = [None, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 30, 60, 90, 180, 365]
-BUDGET_OPTIONS = [None, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000, "custom"]
+BUDGET_STEPS = [*range(50, 1001, 25), None]
 REVIEW_OPTIONS = [0, 1, 5, 10, 25, 50, 100]
 PAGES = ["Explore", "Compare neighborhoods", "Listings & methods"]
 PAGE_ICONS = {"Explore": "◎", "Compare neighborhoods": "⇄", "Listings & methods": "☰"}
@@ -88,14 +88,6 @@ def stay_label(nights: int | None) -> str:
     return f"{nights} night{'s' if nights != 1 else ''}{named.get(nights, '')}"
 
 
-def budget_label(option) -> str:
-    if option is None:
-        return "No budget limit"
-    if option == "custom":
-        return "Custom amount…"
-    return f"Up to ${option:,}/night"
-
-
 if not CANONICAL.exists():
     st.error(f"Canonical Phase 2 data is missing: {CANONICAL}")
     st.info("From the project folder, build it with `python -m phase2.build`.")
@@ -133,7 +125,7 @@ with st.sidebar:
     st.button("↺  Reset all filters", on_click=reset_dashboard, width="stretch")
     st.markdown(
         f'<div class="sidebar-foot"><span class="live-dot"></span>Listing snapshot'
-        f'<small>{len(listings):,} Los Angeles listings · Inside Airbnb · collection date unknown</small></div>',
+        f'<small>{len(listings):,} Los Angeles listings · Inside Airbnb</small></div>',
         unsafe_allow_html=True,
     )
 
@@ -142,38 +134,40 @@ st.markdown(
     '<div class="eyebrow">Los Angeles stay planner</div>'
     '<h1>Find your Los Angeles <em>shortlist</em>.</h1>'
     '<p class="subtitle">Compare neighborhoods by listed nightly price, budget fit and review history, '
-    'then check current details on Airbnb. Snapshot data: collection date unknown; prices and availability may have changed.</p>'
+    'then check live prices and availability on Airbnb.</p>'
     f'</div><div class="snapshot-badge"><strong>{len(listings):,}</strong><small>LISTINGS IN SNAPSHOT</small></div></div>',
     unsafe_allow_html=True,
 )
 
 with st.container(key="filter_bar"):
-    top = st.columns([2.2, 1.4, 1.2])
+    top = st.columns(3, vertical_alignment="bottom")
     selected_areas = top[0].multiselect(
         "Neighborhoods", neighbourhoods, key="filter_neighbourhoods", placeholder="All neighborhoods",
+        help="Leave empty to search every neighborhood.",
     )
     room_choice = top[1].selectbox(
         "Room type", [*room_types, ALL_ROOMS], index=room_types.index(default_room), key="filter_room_type",
+        help="Type of space, not number of bedrooms.",
     )
     nights = top[2].selectbox(
         "Stay length", STAY_OPTIONS, index=STAY_OPTIONS.index(7), format_func=stay_label, key="filter_stay",
+        help="Shows places whose minimum stay fits your trip. Places with an unknown minimum stay "
+             "appear only under “Any stay length”.",
     )
-    bottom = st.columns([1.1, 1.1, 1, 1.2], vertical_alignment="bottom")
-    budget_option = bottom[0].selectbox("Nightly budget", BUDGET_OPTIONS, format_func=budget_label, key="filter_budget")
-    budget = budget_option
-    if budget_option == "custom":
-        budget = bottom[1].number_input("Custom budget (USD/night)", min_value=1.0, value=250.0, step=10.0,
-                                        key="budget_custom")
-    min_reviews = bottom[2].selectbox(
+    bottom = st.columns(3, vertical_alignment="bottom")
+    budget = bottom[0].select_slider(
+        "Nightly budget", BUDGET_STEPS, value=None, key="filter_budget",
+        format_func=lambda v: "No limit" if v is None else f"${v:,}",
+        help="Listed nightly price before taxes and fees. Slide all the way right for no limit.",
+    )
+    min_reviews = bottom[1].selectbox(
         "Reviews", REVIEW_OPTIONS, format_func=lambda n: "Any" if n == 0 else f"{n}+ reviews",
-        key="filter_min_reviews",
+        key="filter_min_reviews", help="Minimum number of guest reviews.",
     )
-    exclude_high = bottom[3].toggle(
-        "Hide flagged high prices", key="exclude_high_prices",
-        help="Excludes listings above the full-source Q3 + 3×IQR price threshold.",
+    exclude_high = bottom[2].toggle(
+        "Hide unusually high prices", key="exclude_high_prices",
+        help="Hides listings priced above the market's outlier threshold (Q3 + 3×IQR).",
     )
-    st.caption("Empty neighborhoods = all. Room type is not bedrooms. A specific stay length excludes listings "
-               "with unknown minimum stays.")
 
 filters = Filters(
     tuple(selected_areas) if selected_areas else None,
@@ -206,15 +200,16 @@ if page == "Explore":
     render_explore(tables, filters, set_detail, room_views, lambda: detail_picker(neighbourhoods))
 
 elif page == "Compare neighborhoods":
-    section("02 / Compare", "Two neighborhoods, like for like",
-            "Uses one room type and inherits stay length, budget, review and price filters. Ignores the neighborhood filter above.")
+    section("Compare", "Two neighborhoods, side by side",
+            "Both use the same room type plus your stay length, budget, review and price filters. "
+            "The neighborhood filter above is ignored here.")
     with st.container(key="panel_compare_controls"):
         cols = st.columns(3)
         a = keep("compare_neighbourhood_a", cols[0].selectbox(
-            "Comparison A", neighbourhoods, key="compare_neighbourhood_a",
+            "Neighborhood A", neighbourhoods, key="compare_neighbourhood_a",
             index=neighbourhoods.index(kept("compare_neighbourhood_a", default_a))))
         b = keep("compare_neighbourhood_b", cols[1].selectbox(
-            "Reference B", neighbourhoods, key="compare_neighbourhood_b",
+            "Neighborhood B", neighbourhoods, key="compare_neighbourhood_b",
             index=neighbourhoods.index(kept("compare_neighbourhood_b", default_b))))
         comparison_room = keep("compare_room_type", cols[2].selectbox(
             "Room type", room_types, key="compare_room_type",

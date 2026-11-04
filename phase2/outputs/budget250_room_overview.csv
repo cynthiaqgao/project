@@ -1,0 +1,2 @@
+room_type,listing_count,price_n,median_price,price_p25,price_p75,within_budget_n,within_budget_share,median_total_reviews,median_reviews_ltm,reviewed_share,review_n,review_ltm_n,review_rate_n,mean_observed_reviews_per_month,availability_n,median_available_nights,missing_price_n
+Entire home/apt,3773,3773,194.0,159.0,225.0,,,47.0,18.0,0.9276437847866419,3773,3773,3500,2.6938085714285718,3773,247.0,0

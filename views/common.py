@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import math
+from urllib.parse import quote
 
 import pandas as pd
 import streamlit as st
@@ -57,46 +58,86 @@ def keep(key: str, value):
     return value
 
 
-def stat_cards(cards: list[tuple[str, str, str, str]]) -> None:
-    """Render (icon, label, value, note) cards: up to four across, stacked on phones."""
+LANDMARKS = {"Downtown LA": (34.0522, -118.2437), "Santa Monica beach": (34.0100, -118.4960),
+             "LAX airport": (33.9416, -118.4085)}
+
+
+def miles(lat, lon, point) -> float:
+    """Straight-line (great-circle) miles; not driving or transit time."""
+    if is_missing(lat) or is_missing(lon):
+        return float("nan")
+    p1, p2 = math.radians(float(lat)), math.radians(point[0])
+    dp, dl = p2 - p1, math.radians(point[1] - float(lon))
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 3958.8 * 2 * math.asin(math.sqrt(a))
+
+
+def airbnb_search(area: str, room: str | None = None, budget: float | None = None) -> str:
+    """Airbnb search URL for a neighborhood, carrying room type and budget when set."""
+    params = []
+    if room:
+        params.append("room_types%5B%5D=" + quote(room, safe=""))
+    if budget is not None:
+        params.append(f"price_max={int(budget)}")
+    url = f"https://www.airbnb.com/s/{quote(f'{area}, Los Angeles, CA', safe='')}/homes"
+    return url + ("?" + "&".join(params) if params else "")
+
+
+def info(text: str) -> str:
+    """Hover/focus ⓘ icon that keeps definitions and formulas out of the way."""
+    return (f'<span class="info" tabindex="0" aria-label="{html.escape(text)}">i'
+            f'<span class="tip">{html.escape(text)}</span></span>')
+
+
+def stat_cards(cards: list[tuple]) -> None:
+    """Render (icon, label, value, note[, tip]) cards: up to four across, stacked on phones."""
     items = "".join(
-        f'<div class="stat-card"><span class="stat-icon">{icon}</span>'
-        f'<div class="stat-label">{html.escape(label)}</div>'
-        f'<div class="stat-value" title="{html.escape(value)}">{html.escape(value)}</div>'
-        f'<div class="stat-note">{html.escape(note)}</div></div>'
-        for icon, label, value, note in cards
+        f'<div class="stat-card"><span class="stat-icon">{card[0]}</span>'
+        f'<div class="stat-label">{html.escape(card[1])}{info(card[4]) if len(card) > 4 and card[4] else ""}</div>'
+        f'<div class="stat-value" title="{html.escape(card[2])}">{html.escape(card[2])}</div>'
+        f'<div class="stat-note">{html.escape(card[3])}</div></div>'
+        for card in cards
     )
     grid = "stat-grid" if len(cards) >= 4 else "stat-grid two"
     st.markdown(f'<div class="{grid}">{items}</div>', unsafe_allow_html=True)
 
 
-def metric_cards(row, budget_row, budget: float | None) -> None:
-    budget_value = pct(budget_row.within_budget_share) if budget is not None else "Set a budget"
-    budget_note = (f"{number(budget_row.within_budget_n)} of {number(budget_row.price_n)} priced · pre-budget"
-                   if budget is not None else "Choose a nightly budget above")
+def metric_cards(row, budget_row, budget: float | None, room: str = "places") -> None:
+    budget_set = budget is not None
+    noun = {"Entire home/apt": "entire homes", "Private room": "private rooms", "Hotel room": "hotel rooms",
+            "Shared room": "shared rooms"}.get(room, "places")
     stat_cards([
-        ("⌂", "Matching listings", number(row.listing_count), "Snapshot listings meeting all filters"),
-        ("$", "Median nightly price", usd(row.median_price), f"Listed USD/night · price_n={number(row.price_n)}"),
-        ("✓", "Within nightly budget", budget_value, budget_note),
-        ("★", "Reviewed listings", pct(row.reviewed_share), "Share with at least one review"),
+        ("⌂", "Places to stay", number(row.listing_count), "Match your filters",
+         f"{number(row.listing_count)} {noun} in the snapshot match every filter you set."),
+        ("$", "Typical price", usd(row.median_price), "per night",
+         f"Half of the matching {noun} list for less than {usd(row.median_price)} a night and half for more. "
+         f"Taxes, cleaning and service fees are extra. {number(row.missing_price_n)} have no listed price "
+         "and are left out."),
+        ("✓", "Fits your budget", pct(budget_row.within_budget_share) if budget_set else "—",
+         f"{number(budget_row.within_budget_n)} of {number(budget_row.price_n)} places" if budget_set
+         else "Slide the budget above",
+         (f"Out of {number(budget_row.price_n)} {noun} with a price, {number(budget_row.within_budget_n)} are "
+          f"listed at {usd(budget)}/night or less." if budget_set else
+          "Set a nightly budget to see what share of places fit it.")),
+        ("★", "Have reviews", pct(row.reviewed_share), "At least one guest review",
+         f"{pct(row.reviewed_share)} of these {noun} have at least one guest review, so someone has stayed "
+         "and written about it. It is a count, not a star rating."),
     ])
 
 
-def section(kicker: str, title: str, note: str = "") -> None:
-    """Wildfire-style section heading: small coral kicker, large title, side note."""
-    side = f'<p>{html.escape(note)}</p>' if note else ""
+def section(kicker: str, title: str, tip: str = "") -> None:
+    """Section heading: small coral kicker over a large title."""
     st.markdown(
         f'<div class="section-heading"><div><div class="kicker">{html.escape(kicker)}</div>'
-        f'<h2>{html.escape(title)}</h2></div>{side}</div>',
+        f'<h2>{html.escape(title)}{info(tip) if tip else ""}</h2></div></div>',
         unsafe_allow_html=True,
     )
 
 
-def panel_header(kicker: str, title: str, note: str = "") -> None:
-    foot = f'<p class="panel-note">{html.escape(note)}</p>' if note else ""
+def panel_header(kicker: str, title: str, tip: str = "") -> None:
     st.markdown(
         f'<div class="panel-kicker">{html.escape(kicker)}</div>'
-        f'<h3 class="panel-title">{html.escape(title)}</h3>{foot}',
+        f'<h3 class="panel-title">{html.escape(title)}{info(tip) if tip else ""}</h3>',
         unsafe_allow_html=True,
     )
 
