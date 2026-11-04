@@ -25,6 +25,11 @@ Deploy the app from GitHub with [Streamlit Community Cloud](https://share.stream
    `app.py` (or choose the branch you merged the dashboard into).
 4. Deploy, then copy the generated `*.streamlit.app` URL and share it.
 
+The Phase 3 assignment requires that the instructor can open the app **without
+signing in**. After deploying, set the app's sharing to public in Streamlit
+Community Cloud (the GitHub repository itself can stay private), then open the
+URL in an incognito window with your local server stopped to confirm it loads.
+
 The repository is currently private. Anyone who needs to maintain or deploy the
 app needs access to the GitHub repository. Set viewer access for groupmates in
 the deployed app's sharing settings if you want to keep the app private; make it

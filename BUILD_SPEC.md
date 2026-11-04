@@ -28,16 +28,17 @@ Phase 3 entry point is `app.py`. Start with **Explore**, all neighborhoods,
 0, high-price sensitivity off. Show “Los Angeles listing snapshot; collection date
 unknown; prices and availability may have changed.” Reset restores these defaults.
 
-Global sidebar controls apply immediately to all Explore views: neighborhood
-multiselect (all initially; explicitly clearing means no results), room-type
-multiselect, integer trip nights 1–365, optional positive USD nightly budget,
-integer minimum total reviews >=0, and “Exclude flagged high prices” toggle.
-Offer a clearly labeled **All stay lengths** option; this sets trip nights to None
-and includes unknown minimum stays. No date-range, season, bedrooms, bathrooms,
+Global filter-bar controls (Phase 3 UI revision) apply immediately to every page:
+neighborhood multiselect (empty = all neighborhoods), room-type dropdown (one type,
+or “All room types” shown separately), stay-length dropdown of preset nights 1–365,
+nightly-budget dropdown of preset or custom positive USD amounts, minimum total
+reviews dropdown, and “Hide flagged high prices” toggle. Offer a clearly labeled
+**Any stay length** option; this sets trip nights to None and includes unknown
+minimum stays. No date-range, season, bedrooms, bathrooms,
 guest-capacity or rating filters: those facts are absent. Room type is not bedrooms.
 Unknown minimum stay is excluded whenever a specific trip length is active.
 
-Tabs: **Explore**, **Compare neighborhoods**, **Listing details & methods**.
+Pages (sidebar navigation): **Explore**, **Compare neighborhoods**, **Listings & methods**.
 Explore may show multiple room types as separate panels/series. Never pool room
 types for a ranking or comparison. With multiple room types selected, show a
 separate four-card KPI row for each room type: count, median price, budget share

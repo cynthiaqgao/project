@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 from dataclasses import replace
 from pathlib import Path
 
@@ -9,6 +10,7 @@ import streamlit as st
 
 from phase2.backend import Filters, compare_neighbourhoods, dashboard_data
 from phase2.clean_data import load_listings
+from views.common import keep, kept, number, section
 from views.compare import render_compare
 from views.details import render_details
 from views.explore import render_explore
@@ -16,18 +18,15 @@ from views.explore import render_explore
 
 ROOT = Path(__file__).resolve().parent
 CANONICAL = ROOT / "phase2" / "outputs" / "listings.csv"
+ALL_ROOMS = "All room types (shown separately)"
+STAY_OPTIONS = [None, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 30, 60, 90, 180, 365]
+BUDGET_OPTIONS = [None, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000, "custom"]
+REVIEW_OPTIONS = [0, 1, 5, 10, 25, 50, 100]
+PAGES = ["Explore", "Compare neighborhoods", "Listings & methods"]
+PAGE_ICONS = {"Explore": "◎", "Compare neighborhoods": "⇄", "Listings & methods": "☰"}
 
-st.set_page_config(page_title="LA Traveler Shortlist", page_icon="⌂", layout="wide")
-st.markdown(
-    """<style>
-    .stApp { background: #fff; color: #17212b; }
-    [data-testid="stMetric"] { background: #f6f8fa; border: 1px solid #e4e9ef;
-      border-radius: .6rem; padding: .8rem 1rem; }
-    [data-testid="stMetricLabel"] { color: #405164; }
-    .stCaption { color: #526274; }
-    </style>""",
-    unsafe_allow_html=True,
-)
+st.set_page_config(page_title="LA Stay Shortlist", page_icon="⌂", layout="wide")
+st.markdown(f"<style>{(ROOT / 'views' / 'style.css').read_text()}</style>", unsafe_allow_html=True)
 
 
 @st.cache_data(show_spinner="Loading the canonical LA listings snapshot…")
@@ -60,12 +59,41 @@ def filter_key(filters: Filters) -> tuple:
 
 def reset_dashboard() -> None:
     # Clearing widget state also clears saved Plotly/table selections, so a
-    # stale chart event cannot restore a detail scope after Reset.
+    # stale chart event cannot restore a detail scope after Reset. The current
+    # page is kept so Reset does not navigate away.
+    page = st.session_state.get("nav", PAGES[0])
     st.session_state.clear()
+    st.session_state.nav = page
 
 
 def set_detail(area: str | None) -> None:
     st.session_state.detail_neighbourhood = area
+
+
+def detail_picker(neighbourhoods: list[str]) -> None:
+    st.selectbox(
+        "Focus neighborhood (keyboard accessible)",
+        [None, *neighbourhoods],
+        format_func=lambda value: "All selected neighborhoods" if value is None else value,
+        key="detail_selector",
+        on_change=lambda: set_detail(st.session_state.detail_selector),
+        help="Chart clicks, table row selection and this dropdown share one detail scope.",
+    )
+
+
+def stay_label(nights: int | None) -> str:
+    if nights is None:
+        return "Any stay length"
+    named = {7: " · 1 week", 14: " · 2 weeks", 28: " · 4 weeks", 30: " · 1 month", 365: " · 1 year"}
+    return f"{nights} night{'s' if nights != 1 else ''}{named.get(nights, '')}"
+
+
+def budget_label(option) -> str:
+    if option is None:
+        return "No budget limit"
+    if option == "custom":
+        return "Custom amount…"
+    return f"Up to ${option:,}/night"
 
 
 if not CANONICAL.exists():
@@ -92,98 +120,118 @@ detail = st.session_state.get("detail_neighbourhood")
 if st.session_state.get("detail_selector") != detail:
     st.session_state["detail_selector"] = detail
 
-st.title("Find your Los Angeles shortlist")
-st.caption(
-    "Los Angeles listing snapshot; collection date unknown; prices and availability may have changed."
+with st.sidebar:
+    st.markdown(
+        '<div class="brand"><span class="brand-mark">⌂</span>'
+        '<span class="brand-name">LA STAY<b>SHORTLIST</b></span></div>'
+        '<div class="brand-caption">TRAVELER DASHBOARD · DSO 576</div>',
+        unsafe_allow_html=True,
+    )
+    page = st.radio("Page", PAGES, key="nav", label_visibility="collapsed",
+                    format_func=lambda name: f"{PAGE_ICONS[name]}   {name}")
+    st.write("")
+    st.button("↺  Reset all filters", on_click=reset_dashboard, width="stretch")
+    st.markdown(
+        f'<div class="sidebar-foot"><span class="live-dot"></span>Listing snapshot'
+        f'<small>{len(listings):,} Los Angeles listings · Inside Airbnb · collection date unknown</small></div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown(
+    '<div class="headline-row"><div>'
+    '<div class="eyebrow">Los Angeles stay planner</div>'
+    '<h1>Find your Los Angeles <em>shortlist</em>.</h1>'
+    '<p class="subtitle">Compare neighborhoods by listed nightly price, budget fit and review history, '
+    'then check current details on Airbnb. Snapshot data: collection date unknown; prices and availability may have changed.</p>'
+    f'</div><div class="snapshot-badge"><strong>{len(listings):,}</strong><small>LISTINGS IN SNAPSHOT</small></div></div>',
+    unsafe_allow_html=True,
 )
 
-with st.sidebar:
-    st.header("Explore filters")
-    st.button("Reset", on_click=reset_dashboard, use_container_width=True)
-    selected_areas = st.multiselect(
-        "Neighborhoods", neighbourhoods, default=neighbourhoods, key="filter_neighbourhoods"
+with st.container(key="filter_bar"):
+    top = st.columns([2.2, 1.4, 1.2])
+    selected_areas = top[0].multiselect(
+        "Neighborhoods", neighbourhoods, key="filter_neighbourhoods", placeholder="All neighborhoods",
     )
-    selected_rooms = st.multiselect(
-        "Room types", room_types, default=[default_room], key="filter_room_types"
+    room_choice = top[1].selectbox(
+        "Room type", [*room_types, ALL_ROOMS], index=room_types.index(default_room), key="filter_room_type",
     )
-    all_stays = st.checkbox("All stay lengths", key="all_stay_lengths")
-    nights = st.number_input(
-        "Planned nights", min_value=1, max_value=365, value=7, step=1,
-        disabled=all_stays, key="planned_nights",
+    nights = top[2].selectbox(
+        "Stay length", STAY_OPTIONS, index=STAY_OPTIONS.index(7), format_func=stay_label, key="filter_stay",
     )
-    has_budget = st.checkbox("Set a nightly budget", key="budget_enabled")
-    budget = st.number_input(
-        "Nightly budget (USD)", min_value=0.01, value=250.0, step=10.0,
-        disabled=not has_budget, key="budget_usd",
+    bottom = st.columns([1.1, 1.1, 1, 1.2], vertical_alignment="bottom")
+    budget_option = bottom[0].selectbox("Nightly budget", BUDGET_OPTIONS, format_func=budget_label, key="filter_budget")
+    budget = budget_option
+    if budget_option == "custom":
+        budget = bottom[1].number_input("Custom budget (USD/night)", min_value=1.0, value=250.0, step=10.0,
+                                        key="budget_custom")
+    min_reviews = bottom[2].selectbox(
+        "Reviews", REVIEW_OPTIONS, format_func=lambda n: "Any" if n == 0 else f"{n}+ reviews",
+        key="filter_min_reviews",
     )
-    min_reviews = st.number_input(
-        "Minimum total reviews", min_value=0, value=0, step=1, key="minimum_reviews"
+    exclude_high = bottom[3].toggle(
+        "Hide flagged high prices", key="exclude_high_prices",
+        help="Excludes listings above the full-source Q3 + 3×IQR price threshold.",
     )
-    exclude_high = st.checkbox("Exclude flagged high prices", key="exclude_high_prices")
-    st.caption(
-        "A specific stay length excludes unknown minimum stays. Compatibility does not confirm booking eligibility."
-    )
-    st.markdown("---")
-    st.subheader("Detail scope")
-    st.selectbox(
-        "Neighborhood (keyboard accessible)",
-        [None, *neighbourhoods],
-        format_func=lambda value: "All selected neighborhoods" if value is None else value,
-        key="detail_selector",
-        on_change=lambda: set_detail(st.session_state.detail_selector),
-    )
-    st.caption("Chart, table, and keyboard selection share this detail scope.")
+    st.caption("Empty neighborhoods = all. Room type is not bedrooms. A specific stay length excludes listings "
+               "with unknown minimum stays.")
 
 filters = Filters(
-    tuple(selected_areas),
-    tuple(selected_rooms),
-    None if all_stays else int(nights),
-    float(budget) if has_budget else None,
+    tuple(selected_areas) if selected_areas else None,
+    tuple(room_types) if room_choice == ALL_ROOMS else (room_choice,),
+    nights,
+    float(budget) if budget is not None else None,
     int(min_reviews),
     bool(exclude_high),
 )
 tables = load_views(file_hash, filter_key(filters))
 
-st.caption(
-    "Active filters: "
-    f"{len(selected_areas):,} neighborhoods · {', '.join(selected_rooms) if selected_rooms else 'no room types'} · "
-    f"{'all stay lengths' if filters.trip_nights is None else f'{filters.trip_nights} planned nights'} · "
-    f"{'no budget' if filters.budget_usd is None else f'${filters.budget_usd:,.2f}/night'} · "
-    f"minimum {filters.min_reviews} total reviews · "
-    f"{'high prices excluded' if filters.exclude_high_prices else 'high-price sensitivity off'}"
+area_text = "all neighborhoods" if not selected_areas else (
+    selected_areas[0] if len(selected_areas) == 1 else f"{len(selected_areas)} neighborhoods")
+st.markdown(
+    '<div class="filter-summary">Showing '
+    f'<b>{number(len(tables["listings"]))}</b> listings · {html.escape(area_text)} · '
+    f'{html.escape(room_choice if room_choice != ALL_ROOMS else "all room types")} · '
+    f'{html.escape(stay_label(filters.trip_nights).lower())} · '
+    f'{"no budget" if filters.budget_usd is None else f"budget ${filters.budget_usd:,.0f}/night"} · '
+    f'{"any reviews" if not filters.min_reviews else f"{filters.min_reviews}+ reviews"} · '
+    f'{"high prices hidden" if filters.exclude_high_prices else "all prices"}</div>',
+    unsafe_allow_html=True,
 )
 
-explore_tab, compare_tab, details_tab = st.tabs(
-    ["Explore", "Compare neighborhoods", "Listing details & methods"]
-)
-
-with explore_tab:
+if page == "Explore":
     room_views = {
         room: load_views(file_hash, filter_key(replace(filters, room_types=(room,))))
         for room in filters.room_types or ()
     }
-    render_explore(tables, filters, set_detail, room_views)
+    render_explore(tables, filters, set_detail, room_views, lambda: detail_picker(neighbourhoods))
 
-with compare_tab:
-    st.caption(
-        "Comparison ignores Explore neighborhood and room selections. It uses one room type and inherits stay length, budget, review, and sensitivity filters."
-    )
-    cols = st.columns(3)
-    a = cols[0].selectbox("Comparison A", neighbourhoods,
-                           index=neighbourhoods.index(default_a), key="compare_neighbourhood_a")
-    b = cols[1].selectbox("Reference B", neighbourhoods,
-                           index=neighbourhoods.index(default_b), key="compare_neighbourhood_b")
-    comparison_room = cols[2].selectbox(
-        "Comparison room type", room_types, index=room_types.index(default_room), key="compare_room_type"
-    )
+elif page == "Compare neighborhoods":
+    section("02 / Compare", "Two neighborhoods, like for like",
+            "Uses one room type and inherits stay length, budget, review and price filters. Ignores the neighborhood filter above.")
+    with st.container(key="panel_compare_controls"):
+        cols = st.columns(3)
+        a = keep("compare_neighbourhood_a", cols[0].selectbox(
+            "Comparison A", neighbourhoods, key="compare_neighbourhood_a",
+            index=neighbourhoods.index(kept("compare_neighbourhood_a", default_a))))
+        b = keep("compare_neighbourhood_b", cols[1].selectbox(
+            "Reference B", neighbourhoods, key="compare_neighbourhood_b",
+            index=neighbourhoods.index(kept("compare_neighbourhood_b", default_b))))
+        comparison_room = keep("compare_room_type", cols[2].selectbox(
+            "Room type", room_types, key="compare_room_type",
+            index=room_types.index(kept("compare_room_type", default_room))))
     if a == b:
-        st.warning("Choose two distinct neighborhoods to compare.")
+        st.warning("Choose two different neighborhoods to compare.")
     else:
         comparison_filters = replace(filters, neighbourhoods=None, room_types=(comparison_room,))
-        comparison_data = load_comparison(
-            file_hash, filter_key(comparison_filters), (a, b)
-        )
+        comparison_data = load_comparison(file_hash, filter_key(comparison_filters), (a, b))
         render_compare(comparison_data, comparison_filters)
 
-with details_tab:
-    render_details(tables, filters, st.session_state.get("detail_neighbourhood"), ROOT, file_hash)
+else:
+    render_details(tables, filters, st.session_state.get("detail_neighbourhood"), ROOT, file_hash,
+                   lambda: detail_picker(neighbourhoods))
+
+st.markdown(
+    '<div class="app-footer"><span>Source · Inside Airbnb Los Angeles listings · CC BY 4.0</span>'
+    '<span>Listed prices are not quotes · Reviews are not ratings</span></div>',
+    unsafe_allow_html=True,
+)

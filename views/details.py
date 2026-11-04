@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import html
 import json
 import math
 from pathlib import Path
@@ -10,7 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from phase2.clean_data import BOOLS
-from .common import number, usd
+from .common import keep, kept, number, section, stat_cards, usd
 
 
 DETAIL_COLUMNS = [
@@ -21,23 +22,31 @@ DETAIL_COLUMNS = [
 ]
 
 
-def render_details(tables, filters, area: str | None, root: Path, file_hash: str) -> None:
-    st.subheader("Listing evidence · selected snapshot listings")
+def render_details(tables, filters, area: str | None, root: Path, file_hash: str, detail_picker) -> None:
+    section("03 / Listings", "Listings to check on Airbnb",
+            "Every filtered listing, sorted before paging. Links open current details; nothing here confirms availability.")
     rows = tables["listings"].copy()
     if area is not None:
         rows = rows.loc[rows.neighbourhood.eq(area)]
     rows = rows[DETAIL_COLUMNS].copy()
     rows["airbnb_link"] = "https://www.airbnb.com/rooms/" + rows.id.astype("string")
-    st.caption(f"Detail neighborhood: {area or 'All selected neighborhoods'} · {len(rows):,} listings. Global filters still apply; comparison filters do not change this detail population.")
+    panel = st.container(key="panel_listings")
+    control_cols = panel.columns([1.6, 1.6, 1, 1], vertical_alignment="bottom")
+    with control_cols[0]:
+        detail_picker()
+    panel.caption(f"Focus: {area or 'All selected neighborhoods'} · {len(rows):,} listings. The filter bar still applies; "
+                  "comparison choices do not change this list.")
     if rows.empty:
-        st.info("No listings match this detail scope. Use Reset or clear the neighborhood selection.")
-
-    control_cols = st.columns([2, 1, 1])
-    sort_label = control_cols[0].selectbox(
-        "Sort all filtered listings by", ["Listed price", "Total reviews", "Source last-12-month reviews"],
-        key="detail_sort_field",
-    )
-    descending = control_cols[1].selectbox("Order", ["Ascending", "Descending"], key="detail_sort_order") == "Descending"
+        panel.info("No listings match this focus and these filters. Choose “All selected neighborhoods”, widen the filters, or press Reset.")
+    control_cols = control_cols[1:]
+    sort_options = ["Listed price", "Total reviews", "Source last-12-month reviews"]
+    sort_label = keep("detail_sort_field", control_cols[0].selectbox(
+        "Sort by", sort_options, key="detail_sort_field",
+        index=sort_options.index(kept("detail_sort_field", sort_options[0]))))
+    order_options = ["Ascending", "Descending"]
+    descending = keep("detail_sort_order", control_cols[1].selectbox(
+        "Order", order_options, key="detail_sort_order",
+        index=order_options.index(kept("detail_sort_order", order_options[0])))) == "Descending"
     sort_column = {
         "Listed price": "price",
         "Total reviews": "number_of_reviews",
@@ -57,12 +66,16 @@ def render_details(tables, filters, area: str | None, root: Path, file_hash: str
         "Page (50 rows)", min_value=1, max_value=pages, value=1, step=1,
         key=f"detail_page_{scope_sig}",
     )
-    st.caption(f"Showing page {page} of {pages}; sorted across all {len(rows):,} matching rows before the page slice. Null sort values are last. IDs are preserved as strings.")
+    panel.caption(f"Showing page {page} of {pages}; sorted across all {len(rows):,} matching rows before the page slice. Null sort values are last. IDs are preserved as strings.")
     page_rows = rows.iloc[(int(page) - 1) * 50:int(page) * 50]
-    st.dataframe(
+    panel.dataframe(
         page_rows, hide_index=True, width="stretch", height=570,
         column_config={
             "id": st.column_config.TextColumn("Listing ID"),
+            "neighbourhood": st.column_config.TextColumn("Neighborhood"),
+            "room_type": st.column_config.TextColumn("Room type"),
+            "number_of_reviews": st.column_config.NumberColumn("Total reviews", format="%d"),
+            "number_of_reviews_ltm": st.column_config.NumberColumn("Source last-12-month reviews", format="%d"),
             "price": st.column_config.NumberColumn("Listed USD/night", format="$%.0f"),
             "minimum_nights": st.column_config.NumberColumn("Minimum nights", format="%d"),
             "last_review": st.column_config.TextColumn("Last review (source date)"),
@@ -71,35 +84,63 @@ def render_details(tables, filters, area: str | None, root: Path, file_hash: str
         },
     )
     csv_bytes = rows.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC).encode("utf-8")
-    st.download_button(
+    panel.download_button(
         f"Download all filtered listings ({len(rows):,} rows)", csv_bytes,
         file_name="la_traveler_filtered_listings.csv", mime="text/csv",
     )
-    st.caption(
+    panel.caption(
         f"Missing prices: {int(rows.price.isna().sum()):,} · unknown minimum stays: {int(rows.minimum_nights.isna().sum()):,}. "
         "Availability is the source calendar context, not a booking or occupancy measure."
     )
 
-    st.subheader("Methods and data")
+    section("04 / Methods", "Data and methods", "How every number on this dashboard is calculated.")
     manifest_path = root / "phase2" / "outputs" / "manifest.json"
     audit_path = root / "phase2" / "outputs" / "audit.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     audit = json.loads(audit_path.read_text()) if audit_path.exists() else {}
-    st.write(f"Canonical CSV SHA-256: `{file_hash}`")
-    st.write(f"Source SHA-256: `{manifest.get('source_sha256', 'not recorded')}`")
-    st.write(f"Snapshot rows: {int(audit.get('output_rows', len(tables['listings']))):,}; source collection date: unknown.")
-    st.write(f"High-price sensitivity threshold: >{usd(audit.get('high_price_threshold_usd'))}, defined as full-source Q3 + 3×IQR. Flagged records are retained unless the sensitivity toggle is on.")
-    st.markdown(
-        """**Metric rules.** Prices are observed listed USD/night, with unknown taxes, fees, discounts, and travel dates. No prices are imputed. Budget shares use pre-budget observed prices as the denominator. A specific trip length requires a known minimum stay no longer than the plan; “All stay lengths” also includes unknown minimum stays. Review counts are not ratings. Calendar availability is neither occupancy nor trip availability. Source last-12-month review counts and availability windows are source-relative, not today-relative. Small-sample bars require n≥30 as a display rule only."""
-    )
-    st.markdown("**Missing-data counts**")
+    snapshot_rows = int(audit.get("output_rows", len(tables["listings"])))
     missing = audit.get("missing", {})
-    if missing:
-        st.dataframe(pd.DataFrame([{"field": key, "missing_rows": value} for key, value in missing.items()]), hide_index=True, width="stretch")
-    st.markdown("**Source and attribution.** Inside Airbnb Los Angeles listings, CC BY 4.0. The exact snapshot date is not established by this local file.")
+    stat_cards([
+        ("⌂", "Snapshot listings", f"{snapshot_rows:,}", "One row per listing ID"),
+        ("$", "Missing prices", number(missing.get("price")), "Kept, never imputed"),
+        ("!", "High-price threshold", f">{usd(audit.get('high_price_threshold_usd'))}", "Q3 + 3×IQR; flagged, kept"),
+        ("?", "Collection date", "Unknown", "Not a live search or quote"),
+    ])
+    cards = [
+        ("Source", "Inside Airbnb · Los Angeles",
+         "Listing snapshot, CC BY 4.0. The exact collection date is not established by the supplied file. "
+         f"Source SHA-256 <code>{html.escape(str(manifest.get('source_sha256', 'not recorded')))}</code>; "
+         f"canonical CSV <code>{html.escape(file_hash)}</code>."),
+        ("Prices", "Listed USD per night",
+         "Observed listed prices only, excluding unknown taxes, fees and discounts. Not a dated quote or total trip "
+         "cost. Medians and middle-50% ranges are recomputed from listing rows; no prices are imputed."),
+        ("Budget", "Pre-budget denominators",
+         "Budget share = observed prices at or below the budget ÷ all observed prices before the budget filter, so "
+         "a budget can never force the share to 100%."),
+        ("Stay length", "Minimum-night compatibility",
+         "A listing qualifies when its minimum nights are no more than the planned stay. Unknown minimums are "
+         "excluded unless “Any stay length” is chosen. This is not proof of booking eligibility."),
+        ("Reviews", "History, not ratings",
+         "Review counts are not ratings, quality or safety scores. Last-12-month counts and calendar availability "
+         "are source-relative windows, not today-relative, and availability is not occupancy."),
+        ("Display rules", "Small samples stay visible",
+         "Ranked bars require 30+ observed values for their metric. This is a display rule, not statistical "
+         "significance; small groups remain in the map, table and comparison with warnings."),
+    ]
+    st.markdown(
+        '<div class="method-grid">' + "".join(
+            f'<div class="method-card"><span>{html.escape(kicker.upper())}</span><h3>{html.escape(title)}</h3>'
+            f'<p>{body}</p></div>' for kicker, title, body in cards) + "</div>",
+        unsafe_allow_html=True,
+    )
+    st.write("")
+    with st.expander("Missing-data counts by field"):
+        if missing:
+            st.dataframe(pd.DataFrame([{"field": key, "missing_rows": value} for key, value in missing.items()]),
+                         hide_index=True, width="stretch")
     contract_path = root / "phase2" / "DATA_CONTRACT.md"
     if contract_path.exists():
         contract = contract_path.read_text()
-        st.download_button("Download data contract", contract, file_name="DATA_CONTRACT.md", mime="text/markdown")
         with st.expander("Read the complete data contract"):
             st.markdown(contract)
+        st.download_button("Download data contract", contract, file_name="DATA_CONTRACT.md", mime="text/markdown")

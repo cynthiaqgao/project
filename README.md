@@ -63,17 +63,37 @@ Calendar availability is not actual occupancy; unavailable nights can be booked 
 
 Method references: https://insideairbnb.com/data-assumptions/ and https://www.airbnb.com/help/article/1634 . Consulted October 2, 2026.
 
-## Phase 3 traveler dashboard
+## Phase 3 traveler dashboard (MVP)
 
-The local dashboard implements the traveler comparison contract in `BUILD_SPEC.md`.
-From this project folder, install the pinned UI requirements and start Streamlit:
+**Users and decision.** A traveler planning a Los Angeles stay shortlists neighborhoods and room
+types that fit their nightly budget and stay length, compares price and review history, then checks
+current listings on Airbnb.
+
+- Live app: _add the Streamlit Community Cloud URL after deployment_
+- Demo video: _add the video link_
+- Repository: https://github.com/cynthiaqgao/project (branch `Kyi-branch`)
+
+**Pages.** *Explore* (KPI cards per room type, lowest-median-price and budget-fit rankings, price
+distribution, neighborhood map, segment table) · *Compare neighborhoods* (two areas, one room type,
+same filters) · *Listings & methods* (sortable, paginated listings with Airbnb links, CSV export,
+metric definitions).
+
+**Run locally** from this folder:
 
 ```bash
-python -m pip install -r phase2/requirements-dashboard.txt
+python -m pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-It uses the canonical snapshot `phase2/outputs/listings.csv`; if that file is
-missing, rebuild it with `python -m phase2.build`. The interface is exploratory:
-it does not show live Airbnb availability, dated trip quotes, ratings, or booking
-confirmation.
+If `phase2/outputs/listings.csv` is missing, rebuild it with `python -m phase2.build`; check the
+backend with `python -m phase2.test_backend`. Theme settings are in `.streamlit/config.toml`.
+
+**Data scope.** The full Inside Airbnb Los Angeles listing snapshot: 43,932 listings, no sampling
+or subsetting. Collection date unknown. 5,570 listings have no price and are excluded from price
+statistics, never imputed. Listings above the Q3 + 3×IQR price threshold are kept; a toggle hides them.
+
+**Limitations.** Prices are listed USD/night from one snapshot, not dated quotes or total trip cost.
+There are no dates, seasons, bedrooms or ratings, so the app cannot show trends or filter by them.
+Review counts are not ratings, and calendar availability is not occupancy. Neighborhood map points
+are approximate centers, not boundaries. Rankings hide neighborhoods with fewer than 30 observed
+prices (a display rule, not a significance test).

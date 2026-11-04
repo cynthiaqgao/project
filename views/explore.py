@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import math
 
 import pandas as pd
@@ -8,7 +9,12 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from phase2.backend import rank_market_segments
-from .common import add_small_metric_flags, metric_cards, number, pct, usable_max
+from .common import (INK, MISSING, MUTED, PRICE_SCALE, ROOM_COLORS, SHARE_SCALE, add_small_metric_flags,
+                     keep, kept, metric_cards, number, panel_header, section, style_fig, table_formats,
+                     usable_max)
+
+
+STATIC = {"displayModeBar": False}
 
 
 def _detail_from_plotly(key: str, set_detail) -> None:
@@ -30,8 +36,15 @@ def _detail_from_plotly(key: str, set_detail) -> None:
         set_detail(str(custom[0]) if custom else None)
 
 
+def _room_chip(room: str) -> None:
+    st.markdown(
+        f'<div class="room-chip"><i style="background:{ROOM_COLORS.get(room, MUTED)}"></i>{html.escape(room)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def _map_fig(frame: pd.DataFrame, room: str, color_column: str, color_title: str,
-             is_share: bool, online: bool, population: str):
+             is_share: bool, online: bool):
     valid = frame.dropna(subset=["latitude", "longitude"]).copy()
     if valid.empty:
         return None
@@ -59,62 +72,106 @@ def _map_fig(frame: pd.DataFrame, room: str, color_column: str, color_title: str
         part = valid.loc[valid._metric_missing.eq(missing)]
         if part.empty:
             continue
+        # A thin white ring separates overlapping markers.
         marker = dict(size=part.listing_count.astype(float), sizemode="area", sizeref=sizeref,
-                      color="#8d99a6" if missing else part[color_column].astype(float))
+                      color=MISSING if missing else part[color_column].astype(float), opacity=.9,
+                      line=dict(color="white", width=1.5))
         if not missing:
-            marker.update(colorscale="Viridis", cmin=0, cmax=value_max,
-                          colorbar=dict(title=color_title, tickformat=".0%" if is_share else "$,.0f"))
+            marker.update(colorscale=SHARE_SCALE if is_share else PRICE_SCALE, cmin=0, cmax=value_max,
+                          colorbar=dict(title=dict(text=color_title, side="right"), thickness=12, outlinewidth=0,
+                                        tickformat=".0%" if is_share else "$,.0f"))
         trace_args = dict(
             mode="markers", marker=marker, customdata=part._custom.tolist(),
-            name="Missing metric" if missing else room,
+            name="Missing metric (gray)" if missing else room,
             hovertemplate=(
-                "Neighborhood: %{customdata[0]}<br>Room type: %{customdata[1]}<br>"
+                "<b>%{customdata[0]}</b> · %{customdata[1]}<br>"
                 "Listings in map population: %{customdata[2]}<br>Valid coordinates (map_n): %{customdata[3]}<br>"
-                "Selected price_n: %{customdata[4]}<br>Selected median USD/night: %{customdata[5]}<br>"
-                "Selected missing prices: %{customdata[6]}<br>Pre-budget within-budget count: %{customdata[7]}<br>"
-                "Pre-budget within-budget share: %{customdata[8]:.1%}<br>"
-                "Pre-budget price_n denominator: %{customdata[9]}<extra></extra>"
+                "Selected median: $%{customdata[5]:,.0f}/night (price_n %{customdata[4]})<br>"
+                "Selected missing prices: %{customdata[6]}<br>"
+                "Pre-budget within budget: %{customdata[7]} of %{customdata[9]} priced "
+                "(%{customdata[8]:.1%})<extra></extra>"
             ),
         )
         if online:
-            fig.add_trace(go.Scattermap(
-                lat=part.latitude.astype(float), lon=part.longitude.astype(float), **trace_args
-            ))
+            fig.add_trace(go.Scattermap(lat=part.latitude.astype(float), lon=part.longitude.astype(float), **trace_args))
         else:
-            fig.add_trace(go.Scatter(
-                x=part.longitude.astype(float), y=part.latitude.astype(float), **trace_args
-            ))
+            fig.add_trace(go.Scatter(x=part.longitude.astype(float), y=part.latitude.astype(float), **trace_args))
     for count in legend_counts:
-        marker = dict(size=count, sizemode="area", sizeref=sizeref,
-                      color="#778391", line=dict(color="#526274", width=1))
-        if online:
-            fig.add_trace(go.Scattermap(lat=[None], lon=[None], mode="markers", marker=marker,
-                                        name=f"{count:,} listings"))
-        else:
-            fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", marker=marker,
-                                     name=f"{count:,} listings"))
+        marker = dict(size=count, sizemode="area", sizeref=sizeref, color="#DDDDDD", line=dict(color=MUTED, width=1))
+        trace = go.Scattermap(lat=[None], lon=[None]) if online else go.Scatter(x=[None], y=[None])
+        trace.update(mode="markers", marker=marker, name=f"{count:,} listings")
+        fig.add_trace(trace)
+    style_fig(fig, height=520)
     fig.update_layout(
-        title=f"{color_title} · {room} · {population}", height=500,
-        margin=dict(l=20, r=20, t=65, b=70),
-        legend=dict(orientation="h", y=-0.18, title="Marker area ∝ listing count"),
-        clickmode="event+select", dragmode="pan", paper_bgcolor="white", plot_bgcolor="white",
+        margin=dict(l=10, r=10, t=10, b=60), clickmode="event+select", dragmode="pan",
+        legend=dict(orientation="h", y=-0.12, title=dict(text="Marker area ∝ listing count  ")),
     )
     if online:
         lat_min, lat_max = float(valid.latitude.min()), float(valid.latitude.max())
         lon_min, lon_max = float(valid.longitude.min()), float(valid.longitude.max())
-        center_lat, center_lon = (lat_min + lat_max) / 2, (lon_min + lon_max) / 2
         span = max(lat_max - lat_min, lon_max - lon_min, 0.01)
         zoom = max(4, min(11, math.log2(360 / span) - 1))
-        fig.update_layout(map=dict(style="open-street-map", center=dict(lat=center_lat, lon=center_lon), zoom=zoom))
+        fig.update_layout(map=dict(style="carto-positron", zoom=zoom,
+                                   center=dict(lat=(lat_min + lat_max) / 2, lon=(lon_min + lon_max) / 2)))
     else:
-        fig.update_xaxes(title="Longitude (degrees)", showgrid=True, zeroline=False)
-        fig.update_yaxes(title="Latitude (degrees)", showgrid=True, zeroline=False,
+        fig.update_xaxes(title="Longitude (degrees)", showgrid=True)
+        fig.update_yaxes(title="Latitude (degrees)", showgrid=True,
                          scaleanchor="x", scaleratio=1 / math.cos(math.radians(34)))
     return fig
 
 
+def _bar_colorbar(title: str, **ticks) -> dict:
+    """Thin horizontal color key above a bar chart, so half-width panels keep their plot width."""
+    return dict(title=dict(text=title, side="top"), orientation="h", x=0, xanchor="left", y=1.02,
+                yanchor="bottom", len=.6, thickness=8, outlinewidth=0, tickangle=0, nticks=4, **ticks)
+
+
+def _price_bars(ranked: pd.DataFrame, shared_max: float, room: str):
+    fig = px.bar(
+        ranked, x="median_price", y="neighbourhood", orientation="h", color="median_price",
+        color_continuous_scale=PRICE_SCALE, range_color=[0, shared_max],
+        custom_data=["price_p25", "price_p75", "listing_count", "price_n", "missing_price_n"],
+    )
+    fig.update_traces(
+        texttemplate="$%{x:,.0f}", textposition="outside", cliponaxis=False, textfont=dict(color=INK, size=12),
+        hovertemplate=("<b>%{y}</b><br>Median: $%{x:,.0f}/night<br>Middle 50%: $%{customdata[0]:,.0f}–"
+                       "$%{customdata[1]:,.0f}<br>Listings: %{customdata[2]:,} · price_n %{customdata[3]:,}"
+                       "<br>Missing prices: %{customdata[4]:,}<extra></extra>"),
+    )
+    style_fig(fig, height=max(420, 28 * len(ranked) + 110))
+    fig.update_layout(margin=dict(l=10, r=10, t=70, b=10))
+    fig.update_yaxes(autorange="reversed", title=None, showgrid=False)
+    fig.update_xaxes(range=[0, shared_max * 1.15], title="Median listed price (USD/night)", tickprefix="$",
+                     nticks=6, tickangle=0)
+    fig.update_layout(coloraxis_colorbar=_bar_colorbar("Median USD/night", tickprefix="$"), bargap=.35)
+    return fig
+
+
+def _share_bars(ranked: pd.DataFrame, budget: float):
+    fig = px.bar(
+        ranked, x="within_budget_share", y="neighbourhood", orientation="h", color="within_budget_share",
+        color_continuous_scale=SHARE_SCALE, range_color=[0, 1],
+        custom_data=["within_budget_n", "price_n", "listing_count", "missing_price_n"],
+    )
+    fig.update_traces(
+        texttemplate="%{x:.0%}", textposition="outside", cliponaxis=False, textfont=dict(color=INK, size=12),
+        hovertemplate=(f"<b>%{{y}}</b><br>Within ${budget:,.0f}/night: %{{x:.1%}}<br>"
+                       "%{customdata[0]:,} of %{customdata[1]:,} pre-budget observed prices"
+                       "<br>Listings: %{customdata[2]:,} · missing prices %{customdata[3]:,}<extra></extra>"),
+    )
+    style_fig(fig, height=max(420, 28 * len(ranked) + 110))
+    fig.update_layout(margin=dict(l=10, r=10, t=70, b=10))
+    fig.update_yaxes(autorange="reversed", title=None, showgrid=False)
+    fig.update_xaxes(range=[0, 1.12], tickformat=".0%", tickvals=[0, .25, .5, .75, 1], tickangle=0,
+                     title="Share of observed pre-budget prices")
+    fig.update_layout(coloraxis_colorbar=_bar_colorbar("Share within budget", tickformat=".0%"), bargap=.35)
+    return fig
+
+
 def _segment_evidence(tables, filters, set_detail) -> None:
-    selected = tables["segments"].copy()
+    # Selected segments carry no budget columns; the labeled pre-budget join
+    # below is the only budget evidence shown in this table.
+    selected = tables["segments"].drop(columns=["within_budget_n", "within_budget_share"])
     pre = tables["affordability_segments"].copy()
     if filters.budget_usd is not None:
         affordability = pre[["neighbourhood", "room_type", "within_budget_n", "within_budget_share", "price_n"]].rename(
@@ -128,7 +185,9 @@ def _segment_evidence(tables, filters, set_detail) -> None:
         selected["pre_budget_within_budget_share"] = pd.NA
         selected["pre_budget_price_n"] = selected.price_n
     selected = add_small_metric_flags(selected)
-    search = st.text_input("Search neighborhood or room type", key="segment_search")
+    search = keep("segment_search", st.text_input(
+        "Search neighborhood or room type", value=kept("segment_search", ""), key="segment_search",
+        placeholder="e.g. Venice, Private room"))
     visible = selected
     if search.strip():
         needle = search.strip()
@@ -140,11 +199,10 @@ def _segment_evidence(tables, filters, set_detail) -> None:
     filter_signature = repr((filters.neighbourhoods, filters.room_types, filters.trip_nights,
                              filters.budget_usd, filters.min_reviews, filters.exclude_high_prices, search))
     key = "segment_table_" + str(abs(hash(filter_signature)))
-    st.caption("Budget columns are pre-budget: the numerator and denominator are computed before budget filtering. Small n<30 flags are display guidance, not statistical significance.")
     detail = st.session_state.get("detail_neighbourhood")
     styled = visible.style.apply(
-        lambda row: ["background-color: #e1f3eb" if row.neighbourhood == detail else "" for _ in row], axis=1
-    )
+        lambda row: ["background-color: #FFF0F0" if row.neighbourhood == detail else "" for _ in row], axis=1
+    ).format(table_formats(visible), na_rep="N/A")
     event = st.dataframe(
         styled, hide_index=True, width="stretch", height=440,
         on_select="rerun", selection_mode="single-row", key=key,
@@ -156,146 +214,177 @@ def _segment_evidence(tables, filters, set_detail) -> None:
         if st.session_state.get("last_segment_selection") != signature:
             st.session_state.last_segment_selection = signature
             set_detail(selected_area)
-    st.caption("Select a segment row to set the detail neighborhood. Availability is source calendar context, not occupancy or trip confirmation.")
+    st.caption("Select a row to focus Listings & methods on that neighborhood. Budget columns are pre-budget "
+               "(computed before budget filtering). n<30 flags are display guidance, not statistical significance. "
+               "Availability is source calendar context, not occupancy or trip confirmation.")
 
 
-def render_explore(tables, filters, set_detail, room_views) -> None:
+def render_explore(tables, filters, set_detail, room_views, detail_picker) -> None:
+    rooms = filters.room_types or ()
     selected_count = len(tables["listings"])
-    if selected_count == 0:
-        st.warning("No listings match these filters. Use Reset in the sidebar.")
-    if not filters.room_types:
-        st.info("Select at least one room type to show separate room-type summaries.")
-    st.caption("Ranking bars require the relevant observed sample size to be at least 30. This is a display rule, not statistical significance.")
 
-    for room in filters.room_types or ():
+    section("01 / Overview", "At a glance",
+            "Each room type gets its own cards. Room types are never pooled into one price or budget figure.")
+    if selected_count == 0:
+        st.warning("No listings match these filters. Try a higher budget, a longer stay, fewer review "
+                   "requirements, or press Reset in the sidebar.")
+    if not rooms:
+        metric_cards(tables["overview"].iloc[0], tables["affordability"].iloc[0], filters.budget_usd)
+    for room in rooms:
         room_tables = room_views[room]
         overview = room_tables["overview"].iloc[0]
         affordability = room_tables["affordability"].iloc[0]
-        st.subheader(f"{room} · selected listing KPIs")
-        metric_cards(st.columns(4), overview, affordability, room, filters.budget_usd)
-        st.caption(
-            f"Selected price_n={number(overview.price_n)}; missing selected prices={number(overview.missing_price_n)}. "
-            + (f"Pre-budget affordability: {number(affordability.within_budget_n)} / {number(affordability.price_n)} observed prices. "
-               if filters.budget_usd is not None else f"Budget not set; {number(affordability.price_n)} observed prices are the available pre-budget denominator. ")
-            + f"Reviewed share denominator: {number(overview.listing_count)} selected listings; observed total reviews n={number(overview.review_n)}."
-        )
+        if len(rooms) > 1:
+            _room_chip(room)
+        metric_cards(overview, affordability, filters.budget_usd)
+    if len(rooms) == 1:
+        overview = room_views[rooms[0]]["overview"].iloc[0]
+        st.caption(f"{rooms[0]} · selected price_n={number(overview.price_n)}; missing selected prices="
+                   f"{number(overview.missing_price_n)}. Reviewed-share denominator: "
+                   f"{number(overview.listing_count)} selected listings.")
+    elif len(rooms) > 1:
+        st.caption(f"Mixed room types · {number(selected_count)} matching listings in total. "
+                   "Prices and shares above are per room type only.")
 
     selected = tables["segments"]
     pre = tables["affordability_segments"]
-    shared_max = usable_max(selected.median_price)
-    for room in filters.room_types or ():
+    ranked_by_room = {
+        room: rank_market_segments(selected.loc[selected.room_type.eq(room)], metric="median_price",
+                                   min_n=30, ascending=True).head(15)
+        for room in rooms
+    }
+    # One 0-to-max price scale shared by every room panel, sized to the bars shown.
+    shared_max = usable_max(pd.concat([r.median_price for r in ranked_by_room.values()])
+                            if ranked_by_room else pd.Series(dtype=float))
+    section("02 / Prices", "Where your budget goes furthest",
+            "Ranking bars need at least 30 observed prices per neighborhood. This is a display rule, not statistical significance.")
+    for room in rooms:
+        if len(rooms) > 1:
+            _room_chip(room)
         part = selected.loc[selected.room_type.eq(room)]
-        ranked = rank_market_segments(part, metric="median_price", min_n=30, ascending=True).head(15)
-        st.subheader(f"Neighborhood prices · {room}")
-        if ranked.empty:
-            st.info(f"No neighborhood price medians meet price_n ≥30 for {room}.")
-        else:
-            fig = px.bar(
-                ranked, x="median_price", y="neighbourhood", orientation="h", color="median_price",
-                color_continuous_scale="Viridis", range_color=[0, shared_max],
-                hover_data={"price_p25": ":$.0f", "price_p75": ":$.0f", "listing_count": True,
-                            "price_n": True, "missing_price_n": True},
-                labels={"median_price": "Median listed USD/night", "neighbourhood": "Neighborhood"},
-                title=f"Lowest 15 neighborhood medians · selected listings · {room}",
-            )
-            fig.update_yaxes(autorange="reversed")
-            fig.update_xaxes(range=[0, shared_max], title="Median listed price (USD/night)")
-            fig.update_layout(height=max(390, 30 * len(ranked)), margin=dict(l=20, r=25),
-                              coloraxis_colorbar_title="USD/night")
-            st.plotly_chart(fig, width="stretch", key=f"price_bars_{room}")
-        missing = int(part.missing_price_n.sum()) if not part.empty else 0
-        st.caption(f"Selected population: {number(part.listing_count.sum())} listings; {missing:,} missing prices are not included in price statistics. Price_n≥30 is the ranking display rule.")
-
-        if filters.budget_usd is not None:
-            pre_part = pre.loc[pre.room_type.eq(room)]
-            ranked_affordability = rank_market_segments(
-                pre_part, metric="within_budget_share", min_n=30, ascending=False
-            ).head(15)
-            st.subheader(f"Within-budget inventory · {room}")
-            if ranked_affordability.empty:
-                st.info(f"No neighborhood budget shares meet pre-budget price_n ≥30 for {room}.")
+        ranked = ranked_by_room[room]
+        price_col, share_col = st.columns(2) if filters.budget_usd is not None else (st.container(), None)
+        with price_col, st.container(key=f"panel_price_{room}"):
+            missing = int(part.missing_price_n.sum()) if not part.empty else 0
+            panel_header("Lowest median prices · selected listings",
+                         f"15 most affordable neighborhoods · {room}",
+                         f"Median listed USD/night. {number(part.listing_count.sum())} listings; "
+                         f"{missing:,} with missing prices are excluded from price statistics.")
+            if ranked.empty:
+                st.info(f"No neighborhood has 30+ observed prices for {room} under these filters. "
+                        "Widen the filters or see the evidence table below.")
             else:
-                fig = px.bar(
-                    ranked_affordability, x="within_budget_share", y="neighbourhood", orientation="h",
-                    color="within_budget_share", color_continuous_scale="Viridis", range_color=[0, 1],
-                    hover_data={"within_budget_n": True, "price_n": True, "listing_count": True,
-                                "missing_price_n": True},
-                    labels={"within_budget_share": "Within-budget share", "neighbourhood": "Neighborhood"},
-                    title=f"Top 15 within ${filters.budget_usd:,.0f}/night · pre-budget population · {room}",
-                )
-                fig.update_yaxes(autorange="reversed")
-                fig.update_xaxes(range=[0, 1], tickformat=".0%", title="Share of observed pre-budget prices")
-                fig.update_layout(height=max(390, 30 * len(ranked_affordability)), margin=dict(l=20, r=25),
-                                  coloraxis_colorbar_title="Within budget", coloraxis_colorbar_tickformat=".0%")
-                st.plotly_chart(fig, width="stretch", key=f"affordability_bars_{room}")
-                st.caption("Numerator = observed prices at or below budget; denominator = all observed prices before budget filtering.")
+                st.plotly_chart(_price_bars(ranked, shared_max, room), width="stretch", key=f"price_bars_{room}",
+                                config=STATIC)
+        if share_col is None:
+            continue
+        pre_part = pre.loc[pre.room_type.eq(room)]
+        ranked_share = rank_market_segments(pre_part, metric="within_budget_share", min_n=30, ascending=False).head(15)
+        with share_col, st.container(key=f"panel_share_{room}"):
+            panel_header("Budget fit · pre-budget population",
+                         f"Highest share within ${filters.budget_usd:,.0f}/night · {room}",
+                         "Share of all observed prices (before the budget filter) at or below your budget.")
+            if ranked_share.empty:
+                st.info(f"No neighborhood has 30+ pre-budget observed prices for {room}.")
+            else:
+                st.plotly_chart(_share_bars(ranked_share, filters.budget_usd), width="stretch",
+                                key=f"affordability_bars_{room}", config=STATIC)
 
-    st.subheader("Price distribution · pre-budget priced listings")
     cdf = tables["price_distribution"]
-    cdf = cdf.loc[cdf.room_type.isin(filters.room_types or ())]
-    if cdf.empty:
-        st.info("No observed prices are available for the selected pre-budget population; no cumulative distribution can be shown.")
-    else:
-        log_x = st.checkbox("Logarithmic price axis (USD/night)", value=False, key="cdf_log_x")
-        fig = px.line(
-            cdf, x="nightly_price_usd", y="cumulative_share", color="room_type", line_shape="hv",
-            hover_data={"listing_count_at_price": True, "price_n": True},
-            labels={"nightly_price_usd": "Listed price (USD/night)", "cumulative_share": "Cumulative share of priced listings", "room_type": "Room type"},
-            title="Price distribution, not a time trend · pre-budget population",
-        )
-        fig.update_yaxes(range=[0, 1], tickformat=".0%", title="Cumulative share (0–100%)")
-        if log_x:
-            fig.update_xaxes(type="log", title="Listed price (USD/night, logarithmic scale)")
+    cdf = cdf.loc[cdf.room_type.isin(rooms)]
+    with st.container(key="panel_cdf"):
+        head, toggle = st.columns([4, 1], vertical_alignment="bottom")
+        with head:
+            panel_header("Price distribution, not a time trend · pre-budget population",
+                         "What share of listings cost less than a given price?",
+                         "Each step is an observed listed price. Read across from any price to the share of priced listings at or below it.")
+        if cdf.empty:
+            st.info("No observed prices are available for the selected pre-budget population, so no distribution can be drawn.")
         else:
-            fig.update_xaxes(range=[0, usable_max(cdf.nightly_price_usd)], title="Listed price (USD/night)")
-        if filters.budget_usd is not None:
-            fig.add_vline(x=filters.budget_usd, line_dash="dash", annotation_text="Nightly budget")
-        fig.update_layout(height=430, margin=dict(l=20, r=20), legend_title="Room type")
-        st.plotly_chart(fig, width="stretch", key="price_cdf")
-        for room in filters.room_types or ():
-            room_rows = cdf.loc[cdf.room_type.eq(room)]
-            if not room_rows.empty:
-                price_n = int(room_rows.price_n.iloc[0])
-                room_segments = tables["affordability_segments"].loc[
-                    tables["affordability_segments"].room_type.eq(room)
-                ]
-                pre_budget_listings = int(room_segments.listing_count.sum())
-                st.caption(f"{room}: {price_n:,} observed prices in the pre-budget distribution; {pre_budget_listings - price_n:,} listings have missing prices.")
-
-    st.subheader("Geographic overview · approximate neighborhood centers")
-    map_columns = st.columns([2, 1])
-    metric = map_columns[0].selectbox(
-        "Map metric", ["Median listed USD/night", "Within-budget share · pre-budget"], key="map_metric"
-    )
-    share_map = metric.startswith("Within-budget")
-    online = map_columns[1].checkbox("Online basemap", value=False, key="online_basemap")
-    if share_map and filters.budget_usd is None:
-        st.info("Set a nightly budget to show within-budget map colors.")
-    else:
-        source = tables["affordability_map"] if share_map else tables["map"]
-        color_column = "within_budget_share" if share_map else "median_price"
-        color_title = "Within-budget share" if share_map else "Median listed USD/night"
-        population = "pre-budget" if share_map else "selected"
-        for room in filters.room_types or ():
-            groups = source.loc[source.room_type.eq(room)]
-            valid_n = int(groups.map_n.fillna(0).sum()) if not groups.empty else 0
-            total_n = int(groups.listing_count.sum()) if not groups.empty else 0
-            st.caption(f"{room} · {population} marker population · {total_n - valid_n:,} listings omitted from approximate centers because coordinates did not pass the map screen.")
-            if not groups.empty and groups.price_n.lt(30).any():
-                st.warning(f"{room}: {int(groups.price_n.lt(30).sum())} groups have price_n <30; map markers remain visible with their sample sizes.")
-            fig = _map_fig(groups, room, color_column, color_title, share_map, online, population)
-            if fig is None:
-                st.info(f"No mappable neighborhood centers for {room} under these filters.")
-                continue
-            key = f"neighborhood_map_{room}_{'budget' if share_map else 'price'}"
-            st.plotly_chart(
-                fig, width="stretch", key=key, on_select="rerun", selection_mode="points",
+            log_x = keep("cdf_log_x", toggle.toggle("Log price axis", value=kept("cdf_log_x", True), key="cdf_log_x"))
+            # A log axis cannot place $0 listings; they still count in each cumulative share.
+            plotted = cdf.loc[cdf.nightly_price_usd.gt(0)] if log_x else cdf
+            fig = px.line(
+                plotted, x="nightly_price_usd", y="cumulative_share", color="room_type", line_shape="hv",
+                color_discrete_map=ROOM_COLORS, custom_data=["price_n"],
+                labels={"room_type": "Room type"},
             )
-            _detail_from_plotly(key, set_detail)
-            if online:
-                st.caption("Online OpenStreetMap basemap. Marker centers are approximate means, not listing pins, official boundaries, or density.")
+            fig.update_traces(line=dict(width=2),
+                              hovertemplate="<b>%{fullData.name}</b><br>$%{x:,.0f}/night or less: "
+                                            "%{y:.1%} of %{customdata[0]:,} priced listings<extra></extra>")
+            style_fig(fig, height=420)
+            fig.update_yaxes(range=[0, 1.02], tickformat=".0%", title="Cumulative share of priced listings (0–100%)")
+            if log_x and not plotted.empty:
+                low, high = float(plotted.nightly_price_usd.min()), float(plotted.nightly_price_usd.max())
+                ticks = [t for t in (1, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000)
+                         if low <= t <= high]
+                fig.update_xaxes(type="log", range=[math.log10(low), math.log10(max(high, low * 10))],
+                                 title="Listed price (USD/night, logarithmic scale)",
+                                 tickvals=ticks, ticktext=[f"${t:,}" for t in ticks])
             else:
-                st.caption("Offline coordinate grid; axes are degrees. Marker centers are approximate means, not listing pins, official boundaries, or density.")
+                fig.update_xaxes(range=[0, usable_max(cdf.nightly_price_usd)], title="Listed price (USD/night)",
+                                 tickprefix="$")
+            if filters.budget_usd is not None:
+                fig.add_trace(go.Scatter(
+                    x=[filters.budget_usd, filters.budget_usd], y=[0, 1], mode="lines+text",
+                    line=dict(color=INK, width=1.5, dash="dash"), name=f"Budget ${filters.budget_usd:,.0f}",
+                    text=[f" Budget ${filters.budget_usd:,.0f}", ""], textposition="top right",
+                    textfont=dict(color=INK, size=12), hoverinfo="skip", showlegend=False,
+                ))
+            fig.update_layout(legend=dict(orientation="h", y=1.08, x=0, title=None), hovermode="closest")
+            st.plotly_chart(fig, width="stretch", key="price_cdf", config=STATIC)
+            notes = []
+            for room in rooms:
+                room_rows = cdf.loc[cdf.room_type.eq(room)]
+                if not room_rows.empty:
+                    price_n = int(room_rows.price_n.iloc[0])
+                    listings_n = int(pre.loc[pre.room_type.eq(room)].listing_count.sum())
+                    notes.append(f"{room}: {price_n:,} observed prices, {listings_n - price_n:,} missing")
+            st.caption(" · ".join(notes) + ". The log axis (default) spans the full observed range while keeping typical prices readable; switch it off for a linear scale.")
 
-    st.subheader("Segment evidence · all selected neighborhood-room groups")
-    _segment_evidence(tables, filters, set_detail)
+    section("03 / Map", "Neighborhoods on the map",
+            "Each bubble is one neighborhood's approximate center. Click a bubble to focus the listing table.")
+    with st.container(key="panel_map"):
+        controls = st.columns([1.4, 1.4, 1], vertical_alignment="bottom")
+        metric_options = ["Median listed USD/night", "Within-budget share · pre-budget"]
+        metric = keep("map_metric", controls[0].selectbox(
+            "Color bubbles by", metric_options, key="map_metric",
+            index=metric_options.index(kept("map_metric", metric_options[0]))))
+        with controls[1]:
+            detail_picker()
+        online = keep("online_basemap", controls[2].toggle(
+            "Street basemap (online)", value=kept("online_basemap", False), key="online_basemap"))
+        share_map = metric.startswith("Within-budget")
+        if share_map and filters.budget_usd is None:
+            st.info("Choose a nightly budget in the filter bar to color neighborhoods by budget fit.")
+        else:
+            source = tables["affordability_map"] if share_map else tables["map"]
+            color_column = "within_budget_share" if share_map else "median_price"
+            color_title = "Within budget" if share_map else "Median USD/night"
+            population = "pre-budget" if share_map else "selected"
+            for room in rooms:
+                groups = source.loc[source.room_type.eq(room)]
+                valid_n = int(groups.map_n.fillna(0).sum()) if not groups.empty else 0
+                total_n = int(groups.listing_count.sum()) if not groups.empty else 0
+                small = int(groups.price_n.lt(30).sum()) if not groups.empty else 0
+                panel_header(f"{color_title} · {population} population", room,
+                             f"{total_n - valid_n:,} listings omitted from centers (coordinates failed the map screen). "
+                             f"{small:,} neighborhoods have price_n<30 and stay visible with their sample sizes in the tooltip.")
+                fig = _map_fig(groups, room, color_column, color_title, share_map, online)
+                if fig is None:
+                    st.info(f"No mappable neighborhood centers for {room} under these filters.")
+                    continue
+                key = f"neighborhood_map_{room}_{'budget' if share_map else 'price'}"
+                st.plotly_chart(fig, width="stretch", key=key, on_select="rerun", selection_mode="points",
+                                config={"displaylogo": False, "scrollZoom": True,
+                                        "modeBarButtonsToRemove": ["lasso2d", "select2d", "toImage"]})
+                _detail_from_plotly(key, set_detail)
+            st.caption(("Street basemap © OpenStreetMap contributors, © CARTO. " if online else
+                        "Offline coordinate grid; axes are degrees. ")
+                       + "Bubble centers are approximate means of listing coordinates, not listing pins, "
+                         "official boundaries or density. Gray bubbles have no observed value for the chosen metric.")
+
+    section("04 / Evidence", "Every neighborhood and room type",
+            "Searchable and sortable. Small samples stay visible with flags.")
+    with st.container(key="panel_segments"):
+        _segment_evidence(tables, filters, set_detail)

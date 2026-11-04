@@ -72,11 +72,36 @@ SUMMARY_COLUMNS = ['neighbourhood', 'room_type', 'listing_count', 'price_n',
     'availability_n', 'median_available_nights', 'missing_price_n']
 
 def market_summary(d, budget_usd=None):
-    rows = []
-    for (area, room), frame in d.groupby(['neighbourhood', 'room_type'], sort=True, dropna=False):
-        row = overview_metrics(frame, budget_usd).to_dict('records')[0]
-        rows.append({'neighbourhood': area, 'room_type': room, **row})
-    return pd.DataFrame(rows, columns=SUMMARY_COLUMNS)
+    """Grouped equivalent of overview_metrics per neighborhood-room segment."""
+    if d.empty:
+        return pd.DataFrame(columns=SUMMARY_COLUMNS)
+    flags = d.assign(_reviewed=d.number_of_reviews.gt(0).fillna(False),
+                     _within=d.price.le(budget_usd).fillna(False) if budget_usd is not None else False)
+    g = flags.groupby(['neighbourhood', 'room_type'], sort=True, dropna=False)
+    out = g.agg(listing_count=('id', 'size'), price_n=('price', 'count'),
+                median_price=('price', 'median'), review_n=('number_of_reviews', 'count'),
+                median_total_reviews=('number_of_reviews', 'median'),
+                review_ltm_n=('number_of_reviews_ltm', 'count'),
+                median_reviews_ltm=('number_of_reviews_ltm', 'median'),
+                reviewed_n=('_reviewed', 'sum'), within_n=('_within', 'sum'),
+                review_rate_n=('reviews_per_month', 'count'),
+                mean_observed_reviews_per_month=('reviews_per_month', 'mean'),
+                availability_n=('availability_365', 'count'),
+                median_available_nights=('availability_365', 'median'))
+    out['price_p25'] = g.price.quantile(.25)
+    out['price_p75'] = g.price.quantile(.75)
+    out = out.astype({c: 'float64' for c in ['median_price', 'price_p25', 'price_p75',
+        'median_total_reviews', 'median_reviews_ltm', 'mean_observed_reviews_per_month',
+        'median_available_nights']})
+    out['missing_price_n'] = out.listing_count - out.price_n
+    out['reviewed_share'] = out.reviewed_n / out.listing_count
+    if budget_usd is None:
+        out['within_budget_n'] = None
+        out['within_budget_share'] = float('nan')
+    else:
+        out['within_budget_n'] = out.within_n.astype(int)
+        out['within_budget_share'] = (out.within_n / out.price_n).where(out.price_n.gt(0))
+    return out.reset_index()[SUMMARY_COLUMNS]
 
 def room_type_overview(d, budget_usd=None):
     """One KPI row per room type, so KPI cards never pool room types."""

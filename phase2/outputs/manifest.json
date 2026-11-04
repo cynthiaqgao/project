@@ -1,0 +1,28 @@
+{
+  "contract_version": "1.0",
+  "source_sha256": "16007ed61afb75ffe44a69e7296bd50a71d61b2cce7cf885eb9d71d1dbd6f289",
+  "files": {
+    "audit.json": "8839ccdd94237338a796cd18b7b149e2a6be2a60e3ce8d40e99b1c5bc81dba92",
+    "budget250_affordability.csv": "e7a19076f209edf26690f4d2e8d6576d154c3b35c3dbe47f5f8430614ffee918",
+    "budget250_affordability_map.csv": "0ef733b328acce8e841c735cd38eb6d5b6443064cb3877cead668ff054d4f565",
+    "budget250_affordability_segments.csv": "2be7a9371e1e150d5d969633267225c91e46f57b7d8410b1a231acb8e4227432",
+    "budget250_map.csv": "1516c55e5ccf26f91f1baa12be556fe2f8175228878ec7c63742b36acc46fd4b",
+    "budget250_overview.csv": "0a48c31a7d6936f3ecefcdb669b59b2861b3b6e7d5cb513e4c9911073b732ea1",
+    "budget250_price_distribution.csv": "c2eef00972be0c9de75bdfbcc2f0ff5a8d7dec08382192895b595c319aa49d48",
+    "budget250_room_affordability.csv": "fae87e26184ca3d1dfaa09a7cda42075b4ee099875aae9b5c8cd1d6d873cb4a3",
+    "budget250_room_overview.csv": "6941da82d77250fb50072c30408b103892405dc295e1c56dec29cb4cb69b699e",
+    "budget250_segments.csv": "c72abb4a73e1e6e20b3bb92e69ef477dbafcb5a012eadd0e840086b5f062c8d6",
+    "default_affordability.csv": "2dddb418621dd14dc64e01838b4ea70a38b61552367d8250df4f75726a6ea657",
+    "default_affordability_map.csv": "f007ffc64d216773d2c31644d2057d5ccecc4007b94eb528920d748c5323eb5b",
+    "default_affordability_segments.csv": "ea13554b8bc11e075798ba7cb22004fbc0c6fd2147766c6ddddd3c1462dad69d",
+    "default_map.csv": "09bdb2215a028227c1a2daa168372a34b99dff3ab58c0f3fc51d8f5ad78c1ddc",
+    "default_overview.csv": "2dddb418621dd14dc64e01838b4ea70a38b61552367d8250df4f75726a6ea657",
+    "default_price_distribution.csv": "c2eef00972be0c9de75bdfbcc2f0ff5a8d7dec08382192895b595c319aa49d48",
+    "default_room_affordability.csv": "eac27262e4c20713f9fdc8940f6db62b4058816b12325d2fc43cdc0eaa92e00d",
+    "default_room_overview.csv": "eac27262e4c20713f9fdc8940f6db62b4058816b12325d2fc43cdc0eaa92e00d",
+    "default_segments.csv": "ea13554b8bc11e075798ba7cb22004fbc0c6fd2147766c6ddddd3c1462dad69d",
+    "example_comparison.csv": "97449cf996e23d1ee04324cfdb8fc8cdc97f2645924fcce23ae8a21c9b8d31cc",
+    "listings.csv": "a6962eaf57629ecca220b557084e2c2e0f1a86d738beafd37de8d650bda3055e",
+    "missingness.csv": "f4157acb78849c2426a89025357bc5cd7cde265b71f58a7e53aab35004756243"
+  }
+}
