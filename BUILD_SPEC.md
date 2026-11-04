@@ -30,10 +30,10 @@ unknown; prices and availability may have changed.” Reset restores these defau
 
 Global filter-bar controls (Phase 3 UI revision) apply immediately to every page:
 neighborhood multiselect (empty = all neighborhoods), room-type dropdown (one type,
-or “All room types” shown separately), stay-length dropdown of preset nights 1–365,
+or “All room types” shown separately), stay-length number input of 1–365 nights,
 nightly-budget dropdown of preset or custom positive USD amounts, minimum total
 reviews dropdown, and “Hide flagged high prices” toggle. Offer a clearly labeled
-**Any stay length** option; this sets trip nights to None and includes unknown
+empty stay-length box (**any stay length**); this sets trip nights to None and includes unknown
 minimum stays. No date-range, season, bedrooms, bathrooms,
 guest-capacity or rating filters: those facts are absent. Room type is not bedrooms.
 Unknown minimum stay is excluded whenever a specific trip length is active.

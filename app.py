@@ -19,7 +19,6 @@ from views.explore import render_explore
 ROOT = Path(__file__).resolve().parent
 CANONICAL = ROOT / "phase2" / "outputs" / "listings.csv"
 ALL_ROOMS = "All room types (shown separately)"
-STAY_OPTIONS = [None, 1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 30, 60, 90, 180, 365]
 BUDGET_STEPS = [*range(50, 1001, 25), None]
 REVIEW_OPTIONS = [0, 1, 5, 10, 25, 50, 100]
 PAGES = ["Explore", "Compare neighborhoods", "Listings & methods"]
@@ -149,11 +148,16 @@ with st.container(key="filter_bar"):
         "Room type", [*room_types, ALL_ROOMS], index=room_types.index(default_room), key="filter_room_type",
         help="Type of space, not number of bedrooms.",
     )
-    nights = top[2].selectbox(
-        "Stay length", STAY_OPTIONS, index=STAY_OPTIONS.index(7), format_func=stay_label, key="filter_stay",
-        help="Shows places whose minimum stay fits your trip. Places with an unknown minimum stay "
-             "appear only under “Any stay length”.",
+    # Default 7 nights is seeded via session state; a widget default of None is
+    # what lets travelers clear the box for "any stay length".
+    st.session_state.setdefault("filter_stay", 7)
+    nights = top[2].number_input(
+        "Stay length (nights)", min_value=1, max_value=365, value=None, step=1, key="filter_stay",
+        placeholder="Any stay length",
+        help="Shows places whose minimum stay fits your trip. Clear the box for any stay length, "
+             "which also includes places with an unknown minimum stay.",
     )
+    nights = None if nights is None else int(nights)
     bottom = st.columns(3, vertical_alignment="bottom")
     budget = bottom[0].select_slider(
         "Nightly budget", BUDGET_STEPS, value=None, key="filter_budget",
