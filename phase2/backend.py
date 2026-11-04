@@ -56,7 +56,9 @@ def overview_metrics(d, budget_usd=None):
         'median_total_reviews': d.number_of_reviews.median(),
         'review_ltm_n': int(d.number_of_reviews_ltm.count()),
         'median_reviews_ltm': d.number_of_reviews_ltm.median(),
-        'reviewed_share': float(d.number_of_reviews.gt(0).mean()) if n else float('nan'),
+        # Missing review counts are not reviewed, but stay in the selected-
+        # listing denominator instead of silently shrinking it.
+        'reviewed_share': float(d.number_of_reviews.gt(0).fillna(False).sum() / n) if n else float('nan'),
         'review_rate_n': int(d.reviews_per_month.count()),
         'mean_observed_reviews_per_month': d.reviews_per_month.mean(),
         'availability_n': int(d.availability_365.count()),
@@ -70,11 +72,36 @@ SUMMARY_COLUMNS = ['neighbourhood', 'room_type', 'listing_count', 'price_n',
     'availability_n', 'median_available_nights', 'missing_price_n']
 
 def market_summary(d, budget_usd=None):
-    rows = []
-    for (area, room), frame in d.groupby(['neighbourhood', 'room_type'], sort=True, dropna=False):
-        row = overview_metrics(frame, budget_usd).to_dict('records')[0]
-        rows.append({'neighbourhood': area, 'room_type': room, **row})
-    return pd.DataFrame(rows, columns=SUMMARY_COLUMNS)
+    """Grouped equivalent of overview_metrics per neighborhood-room segment."""
+    if d.empty:
+        return pd.DataFrame(columns=SUMMARY_COLUMNS)
+    flags = d.assign(_reviewed=d.number_of_reviews.gt(0).fillna(False),
+                     _within=d.price.le(budget_usd).fillna(False) if budget_usd is not None else False)
+    g = flags.groupby(['neighbourhood', 'room_type'], sort=True, dropna=False)
+    out = g.agg(listing_count=('id', 'size'), price_n=('price', 'count'),
+                median_price=('price', 'median'), review_n=('number_of_reviews', 'count'),
+                median_total_reviews=('number_of_reviews', 'median'),
+                review_ltm_n=('number_of_reviews_ltm', 'count'),
+                median_reviews_ltm=('number_of_reviews_ltm', 'median'),
+                reviewed_n=('_reviewed', 'sum'), within_n=('_within', 'sum'),
+                review_rate_n=('reviews_per_month', 'count'),
+                mean_observed_reviews_per_month=('reviews_per_month', 'mean'),
+                availability_n=('availability_365', 'count'),
+                median_available_nights=('availability_365', 'median'))
+    out['price_p25'] = g.price.quantile(.25)
+    out['price_p75'] = g.price.quantile(.75)
+    out = out.astype({c: 'float64' for c in ['median_price', 'price_p25', 'price_p75',
+        'median_total_reviews', 'median_reviews_ltm', 'mean_observed_reviews_per_month',
+        'median_available_nights']})
+    out['missing_price_n'] = out.listing_count - out.price_n
+    out['reviewed_share'] = out.reviewed_n / out.listing_count
+    if budget_usd is None:
+        out['within_budget_n'] = None
+        out['within_budget_share'] = float('nan')
+    else:
+        out['within_budget_n'] = out.within_n.astype(int)
+        out['within_budget_share'] = (out.within_n / out.price_n).where(out.price_n.gt(0))
+    return out.reset_index()[SUMMARY_COLUMNS]
 
 def room_type_overview(d, budget_usd=None):
     """One KPI row per room type, so KPI cards never pool room types."""
@@ -132,13 +159,22 @@ def dashboard_data(d, filters=Filters()):
     """Consistent contract for all views; affordability always uses pre-budget data."""
     base = filter_listings(d, filters, apply_budget=False)
     selected = filter_listings(d, filters)
+    selected_map = geographic_summary(selected)
+    pre_budget_map = geographic_summary(base, filters.budget_usd)
+    budget_columns = pre_budget_map[
+        ['neighbourhood', 'room_type', 'within_budget_n', 'within_budget_share', 'price_n']
+    ].rename(columns={'price_n': 'pre_budget_price_n'})
+    selected_map = selected_map.drop(columns=['within_budget_n', 'within_budget_share']).merge(
+        budget_columns, on=['neighbourhood', 'room_type'], how='left', validate='one_to_one'
+    )
+    pre_budget_map['pre_budget_price_n'] = pre_budget_map['price_n']
     return {'overview': overview_metrics(selected),
             'affordability': overview_metrics(base, filters.budget_usd),
             'room_overview': room_type_overview(selected),
             'room_affordability': room_type_overview(base, filters.budget_usd),
             'segments': market_summary(selected),
             'affordability_segments': market_summary(base, filters.budget_usd),
-            'map': geographic_summary(selected),
-            'affordability_map': geographic_summary(base, filters.budget_usd),
+            'map': selected_map,
+            'affordability_map': pre_budget_map,
             'price_distribution': price_distribution(base),
             'listings': selected.copy()}

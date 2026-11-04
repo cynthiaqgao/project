@@ -1,0 +1,3 @@
+neighbourhood,listing_count,price_n,missing_price_n,median_price,price_p25,price_p75,within_budget_n,within_budget_share,review_n,median_total_reviews,review_ltm_n,median_reviews_ltm,reviewed_share,review_rate_n,mean_observed_reviews_per_month,availability_n,median_available_nights
+Hollywood,337,327,10,336.0,264.0,481.0,69,0.21100917431192662,337,16.0,337,11.0,0.8397626112759644,283,2.758127208480566,337,269.0
+Venice,402,374,28,590.0,388.25,960.5,24,0.06417112299465241,402,50.0,402,14.0,0.9328358208955224,375,2.091413333333333,402,191.0

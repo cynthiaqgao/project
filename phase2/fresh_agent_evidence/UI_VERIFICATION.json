@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "cold_default",
+      "seconds": 2.164106540963985,
+      "exceptions": []
+    },
+    {
+      "case": "cached_rerun",
+      "seconds": 0.19266974995844066,
+      "exceptions": []
+    },
+    {
+      "case": "budget250",
+      "seconds": 1.415150791988708,
+      "exceptions": []
+    },
+    {
+      "case": "no_selected_prebudget_retained",
+      "seconds": 0.797125041950494,
+      "exceptions": []
+    },
+    {
+      "case": "empty_neighborhoods",
+      "seconds": 0.06854829203803092,
+      "exceptions": []
+    },
+    {
+      "case": "reset_defaults",
+      "seconds": 1.7984062500763685,
+      "exceptions": []
+    },
+    {
+      "case": "multiple_rooms",
+      "seconds": 3.488032458932139,
+      "exceptions": []
+    },
+    {
+      "case": "detail_keyboard",
+      "seconds": 0.16793500003404915,
+      "exceptions": []
+    },
+    {
+      "case": "all_stays",
+      "seconds": 4.989576958003454,
+      "exceptions": []
+    },
+    {
+      "case": "exclude_high",
+      "seconds": 5.274646332953125,
+      "exceptions": []
+    },
+    {
+      "case": "empty_rooms",
+      "seconds": 0.07253274996764958,
+      "exceptions": []
+    }
+  ]
+}

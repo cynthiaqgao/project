@@ -1,0 +1,11 @@
+{
+  "BUILD_SPEC.md": "eba0ff543c80e160c97430aa672a595ee64f50f4e65f448e4445a3ba38693bf7",
+  "phase2/__init__.py": "f3b8c25350e4b93352cd4055bd8520d21eaa8214643de9258feff092e08fc45f",
+  "phase2/backend.py": "3af7f2b181ac18b14148108c4738b5ff09a96562d457cb93e62efba641bc0173",
+  "phase2/build.py": "269f583f693a8291e664c87f786f7815341fea92af1b3ab20b53b563300fe37b",
+  "phase2/clean_data.py": "bac176cab7b61b621c53eea412f3c1b8a121abc34fde53030956e0dd90899db6",
+  "phase2/execute_notebook.py": "1b13a60b5aec4cf25bd33d134324196b7ced957325f72885dce6dd7cd90302ce",
+  "phase2/test_backend.py": "6ade6cae6cef0f96669bbfedd91ccb8f3616158ead29b65174982b04c3234631",
+  "phase2/outputs/listings.csv": "f6f238fae213538a3e490513c107f3c7f18b0ffc47045d9fcd69a2c68ba3da73",
+  "LA_listings.csv": "16007ed61afb75ffe44a69e7296bd50a71d61b2cce7cf885eb9d71d1dbd6f289"
+}

@@ -1,0 +1,160 @@
+diff --git a/BUILD_SPEC.md b/BUILD_SPEC.md
+index bf06c35..5ce9911 100644
+--- a/BUILD_SPEC.md
++++ b/BUILD_SPEC.md
+@@ -1,6 +1,6 @@
+ # LA Airbnb Traveler Comparison Dashboard
+ 
+-Phase 2 build contract v1.0. Build the Phase 3 MVP from this file and `phase2/`.
++Phase 2 build contract v1.2. Build the Phase 3 MVP from this file and `phase2/`.
+ Phase 1 remains unchanged. No host recruitment, revenue, occupancy, or investment scoring.
+ 
+ ## 1. Revised traveler vision
+@@ -28,19 +28,30 @@ Phase 3 entry point is `app.py`. Start with **Explore**, all neighborhoods,
+ 0, high-price sensitivity off. Show “Los Angeles listing snapshot; collection date
+ unknown; prices and availability may have changed.” Reset restores these defaults.
+ 
+-Global sidebar controls apply immediately to all Explore views: neighborhood
+-multiselect (all initially; explicitly clearing means no results), room-type
+-multiselect, integer trip nights 1–365, optional positive USD nightly budget,
+-integer minimum total reviews >=0, and “Exclude flagged high prices” toggle.
+-Offer a clearly labeled **All stay lengths** option; this sets trip nights to None
+-and includes unknown minimum stays. No date-range, season, bedrooms, bathrooms,
++Global sidebar controls apply immediately to Explore and Details: an **All
++neighborhoods** checkbox (on = `neighbourhoods=None`; off reveals a multiselect that
++starts empty, and empty means no results), room-type multiselect, integer trip nights
++1–365, optional nightly budget number input (blank = no budget, min $1, step $25),
++integer minimum total reviews >=0, and “Exclude flagged high prices” toggle. An
++**All stay lengths** checkbox sets trip nights to None, disables the nights input and
++includes unknown minimum stays.
++
++**Shortlist (U3).** An “Add to shortlist” button beside the detail-neighborhood
++dropdown adds the current detail neighborhood (no duplicates, max 5, this session
++only). The sidebar lists shortlisted names with remove buttons; Compare A/B
++selectors list them first. No persistence or export.
++Reset restores every default above and also clears detail selection, the
++shortlist, Compare selectors, map options, table search and page number. No date-range, season, bedrooms, bathrooms,
+ guest-capacity or rating filters: those facts are absent. Room type is not bedrooms.
+ Unknown minimum stay is excluded whenever a specific trip length is active.
+ 
+ Tabs: **Explore**, **Compare neighborhoods**, **Listing details & methods**.
+ Explore may show multiple room types as separate panels/series. Never pool room
+-types for a ranking or comparison. Global listing counts can summarize multiple
+-room types only with a visible “Mixed room types” label.
++types for a ranking or comparison. With multiple room types selected, show a
++separate four-card KPI row for each room type: count, median price, budget share
++and reviewed share. An optional combined count must say “Mixed room types”; do
++not show pooled price/review/budget KPI cards. Compare has its own single-room
++selector; changing the global Explore room selection does not change that selector.
+ 
+ ## 3. Metrics and population rules
+ 
+@@ -73,16 +84,16 @@ No “best neighborhood” composite: allow users to weigh price and review evid
+ 
+ | View / use case | Visual, ordering, encoding, interaction and backend |
+ |---|---|
+-| Explore KPI row / U1 | Four cards: matching listings, median nightly price with `price_n`, within-budget share with numerator/denominator (or “Set a budget”), reviewed-listing share. Use `dashboard_data()['overview']` for selected KPIs and `['affordability']` for budget share. |
+-| Neighborhood price / U1 | Horizontal bars, top 15 lowest medians per room type, ascending, USD x-axis starting at 0, neighborhood y-axis. Use selected `segments`, `rank_market_segments(metric='median_price')`. Tooltip: median, Q1/Q3, listing count, price_n, missing-price count. Intensity encodes price using a sequential Viridis palette and labeled USD color scale. |
++| Explore KPI row / U1 | Four cards: matching listings, median nightly price with `price_n`, within-budget share with numerator/denominator (or “Set a budget”), reviewed-listing share. Use `room_overview` (selected, one row per room type) for cards and `room_affordability` for budget share. With a budget, the price card is labeled “Median of within-budget listings” with “All priced: $X (pre-budget)” beneath from `room_affordability`. |
++| Neighborhood price / U1 | Horizontal bars, top 15 lowest medians per room type, ascending, USD x-axis starting at 0, neighborhood y-axis. Rank **pre-budget** `affordability_segments` with `rank_market_segments(metric='median_price')`, so a budget never truncates the ranking; draw the budget as a vertical reference line. One stacked chart per room type. Tooltip: median, Q1/Q3, listing count, price_n, missing-price count. Intensity encodes price using a sequential Viridis palette and labeled USD color scale. |
+ | Affordability / U1 | When budget is set, horizontal bars top 15 highest within-budget shares per room type, 0–100% x-axis. Rank **pre-budget** `affordability_segments` by `within_budget_share`, descending. Show eligible-priced count and numerator on hover; the denominator must never be the budget-filtered subset. |
+ | Price distribution / U1 | Empirical cumulative **step line**, pre-budget data, x = listed USD/night, y = cumulative percent of priced listings, 0–100%. One series per selected room type; tooltip price, cumulative %, price_n. Optional vertical budget line. Label “Price distribution, not a time trend.” Default x limit is full observed range; an explicit log-x display toggle is allowed with positive values and clear log label. `price_distribution()` supplies every observed price point. |
+-| Geographic overview / U3 | Plotly geographic scatter using neighborhood/room summary markers, not listing pins. One panel per room type. Marker location = mean valid listing coordinates; approximate center, not official centroid/boundary. Color by median USD/night or within-budget %; marker **area** proportional to listing_count (radius proportional to square root of count). Include colorbar and 3-symbol count legend. All data fit initially; enable pan/zoom and scale bar where the map component supports it. `geographic_summary()` supplies metrics and map_n. |
+-| Map hover/click / U3, U4 | Hover shows neighborhood, room type, listing_count, map_n, price_n, median price, missing-price count and budget numerator/denominator. Use `map` for selected price/inventory; use `affordability_map` for **pre-budget** budget evidence and label its different population. Click sets selected neighborhood for details and highlights its table row; clearing selection restores global scope. A keyboard-accessible neighborhood dropdown offers identical behavior. |
+-| Compare neighborhoods / U2 | Independent two-neighborhood selectors default Hollywood and Venice; exactly one room type defaults Entire home/apt. Inherit global stay length, budget, reviews and sensitivity; ignore global neighborhood selection. `compare_neighbourhoods()` returns **pre-budget** side-by-side values. Show median price + IQR, budget count/share, total/last-12-month reviews, and sample sizes. Show A−B in USD for median price, percentage points for budget share; relative price difference (A/B−1) only when B>0. Label comparison A and reference B. No mixed-room or unmatched-filter comparison. |
+-| Segment evidence / U1, U4 | Full searchable/sortable table of selected neighborhood-room segments with metric denominators, missing counts and availability context. If budget is active, join within_budget_n/share and pre_budget_price_n from `affordability_segments` by neighborhood+room type, one-to-one; label these columns pre-budget. Initial sort median price ascending then neighborhood and room type. Show all segments, including small samples; flag metric n<30. Row click opens details. |
+-| Listing evidence / U4 | Selected listing rows: id (string), neighborhood, room type, listed price, minimum nights, total reviews, source last-12-month reviews, last_review, availability nights and flags. Sort price ascending, null last, id as tie-breaker. Paginate 50 per page. Airbnb link `https://www.airbnb.com/rooms/{id}`, labeled “Check current details”; do not describe a listing as available. Download exports the filtered displayed columns with IDs quoted as strings. No host names/license strings needed in UI. |
+-| Methods / U4 | Source fingerprint and unknown snapshot date, actual row/missing counts, active filters, metric definitions, outlier threshold, caveats, and link to data contract. Make missingness visible next to charts, not only hidden here. |
++| Geographic overview / U3 | Plotly geographic scatter using neighborhood/room summary markers, not listing pins. One panel per room type. Marker location = mean valid listing coordinates; approximate center, not official centroid/boundary. Color by median USD/night or within-budget %; marker **area** proportional to listing_count (radius proportional to square root of count). A “Map color” radio picks median price (default) or within-budget share (offered only with a budget). Include colorbar and a count legend with fixed sizes 10, 100 and 1,000 listings (omit sizes above the maximum). All data fit initially; enable pan/zoom. No scale bar is required (Plotly geo has none). A “Map background” radio offers Basemap (default) or Coordinate grid (offline); grid mode must show every mappable marker with the network off. Use the `dashboard_data` map tables below for markers. With a budget, price-mode segments with no within-budget listings have no marker; state their count beneath the map. |
++| Map hover/click / U3, U4 | Hover shows neighborhood, room type, listing_count, map_n, selected price_n, median price, missing-price count and budget numerator/denominator. The bundle's `map` keeps selected price/inventory and supplies joined **pre-budget** within_budget_n/share plus `pre_budget_price_n`; never label selected price_n as the budget denominator. Use `affordability_map` for **pre-budget** budget-colored markers and label its different population. Click selects the neighborhood only, even from a room-specific panel; preserve all globally selected room types in Details. Highlight all segment rows for that neighborhood. Clearing selection restores global scope. A keyboard-accessible neighborhood dropdown offers identical behavior. |
++| Compare neighborhoods / U2 | Independent two-neighborhood selectors default Hollywood and Venice; exactly one room type defaults Entire home/apt. Inherit global stay length, budget, reviews and sensitivity; ignore global neighborhood selection. `compare_neighbourhoods()` returns **pre-budget** side-by-side values. Show median price + IQR, budget count/share, total/last-12-month reviews, and sample sizes. Show A−B in USD for median price, percentage points for budget share, and counts for median total and last-12-month reviews; relative price difference (A/B−1) only when B>0. Replace a delta with “Not compared (n<30)” when either side's denominator for that metric (price_n, price_n, review_n, review_ltm_n) is below 30; raw values stay visible. The B selector excludes A. Without a budget, budget rows read “Set a budget”. Label comparison A and reference B. No mixed-room or unmatched-filter comparison. |
++| Segment evidence / U1, U4 | Full sortable table of **pre-budget** `affordability_segments` (identical to `segments` without a budget), so segments with zero within-budget listings stay visible; label within_budget_n/share as pre-budget. Neighborhood text search. Initial sort median price ascending then neighborhood and room type. Show all segments, including small samples; flag price_n<30 (the ranking rule) and show other n columns unflagged. Row click sets detail scope (Streamlit cannot switch tabs) and shows a caption pointing to the details tab. |
++| Listing evidence / U4 | Selected listing rows: id (string), neighborhood, room type, listed price, minimum nights, total reviews, source last-12-month reviews, last_review, availability nights and a flags column listing: price missing, min stay unknown, high price, price < $10, min stay > 365, review fields inconsistent, review counts inconsistent, coordinates screened. Sort price ascending, null last, id as tie-breaker. Paginate 50 per page. Airbnb link `https://www.airbnb.com/rooms/{id}`, labeled “Check current details”; do not describe a listing as available. Download all filtered detail-scoped rows, not just the current page, with only displayed columns and quoted string IDs; label button “Download all filtered listings (N rows)”. No host names/license strings needed in UI. |
++| Methods / U4 | Source fingerprint and unknown snapshot date, actual row/missing counts, active filters, metric definitions, outlier threshold, caveats, Inside Airbnb attribution with its CC BY 4.0 notice, and `phase2/DATA_CONTRACT.md` rendered in an expander (no external URL exists). Make missingness visible next to charts, not only hidden here. |
+ 
+ Neighborhood markers satisfy hoverable geographic exploration with the current
+ source. No boundary file exists, so do not invent colored region polygons.
+@@ -91,11 +102,11 @@ neighborhood-key join. Geographic extents and region sizes must not imply densit
+ 
+ ## 5. Visual and interaction acceptance rules
+ 
+-- Every chart/table has a specific title naming metric, population and unit; include axis labels, scale and legend where encoding requires them. Currency `$`, nights and percentages use explicit units. KPI prices show whole USD; percentages 1 decimal; no false precision in coordinates.
+-- White background, dark readable text, consistent spacing, sequential color scales for magnitude, gray for missing. Never encode missing as zero. Color is supported by labels/tooltips. Keep scales fixed within comparisons and unchanged while hovering; recompute only when filters/metric change. For price use the same shared 0-to-maximum scale across room panels; for affordability use 0–100%.
+-- Horizontal bars, wrapped/truncated neighborhood names with full hover text, top 15 visible, responsive height and table scrolling prevent overlap. At 1280×800 and 375px mobile width, no clipped legends or overlapping labels. Stack charts and cards on narrow screens.
++- Every chart/table has a specific title naming metric, population and unit; include axis labels, scale and legend where encoding requires them. Currency `$`, nights and percentages use explicit units. All displayed USD values are whole dollars (exports keep full precision); percentages 1 decimal; no false precision in coordinates.
++- White background (a `.streamlit/config.toml` with `base = "light"` is allowed), dark readable text, consistent spacing, sequential color scales for magnitude, gray for missing. Never encode missing as zero. Color is supported by labels/tooltips. Keep scales fixed within comparisons and unchanged while hovering; recompute only when filters/metric change. For price use one shared scale from 0 to the largest value displayed across room panels; for affordability use 0–100%.
++- Horizontal bars, wrapped/truncated neighborhood names with full hover text, top 15 visible, responsive height and table scrolling prevent overlap. At 1280×800 and 375×812 (browser dev-tools responsive mode; save screenshots as Phase 3 evidence), no clipped legends or overlapping labels. Stack charts and cards on narrow screens.
+ - Ranked metrics require their own observed denominator >=30 (price_n for price and affordability). Label this as a display rule, not statistical significance. Small groups remain visible in the table/map with a warning; no numeric “winner” for either comparison group below the metric's threshold.
+-- Empty filters yield 0 listings, other unavailable metrics “N/A”, and “No listings match these filters” with Reset. No blank chart crashes. Missing-price-only groups show counts and gray/N/A price encodings; hide unmappable markers and disclose omitted map_n separately. No CDF for groups with price_n=0.
++- If selected population is empty, show 0 listings, selected statistics “N/A”, and “No listings match these filters” with Reset. When pre-budget data still exists (e.g., budget below every price), keep its CDF, affordability bars/map and comparison visible, labeled pre-budget; budget share is 0%, not N/A, when price_n>0. If pre-budget population is also empty, replace those charts with an empty message. No blank chart crashes. Missing-price-only groups show counts and gray/N/A price encodings; hide unmappable markers and disclose omitted map_n separately. No CDF for groups with price_n=0.
+ - Explore budget filtering and pre-budget affordability must be distinguishable by labels. A budget must never force affordability to 100%. All tab filters and selection state remain visible. Hover changes no state; marker/table clicks change only detail scope, not global filters. Reset clears detail selection.
+ - Line charts show distributions in this MVP. Monthly, seasonal, MoM and YoY plots require repeated comparable snapshots or dated review/calendar observations with documented windows; do not infer them from each listing's last_review.
+ 
+@@ -104,7 +115,7 @@ neighborhood-key join. Geographic extents and region sizes must not imply densit
+ | Component | Input -> output / responsibility |
+ |---|---|
+ | `phase2/clean_data.py` | Raw all-string dataframe -> canonical dataframe + audit; load canonical CSV with explicit nullable types and string identifiers. No UI. |
+-| `phase2/build.py` | Immutable `LA_listings.csv` -> versioned canonical CSV, audit, manifest and representative dashboard tables. Rebuild offline; no external joins. |
++| `phase2/build.py` | Immutable `LA_listings.csv` -> versioned canonical CSV, audit, manifest and representative dashboard tables (verification fixtures; the app recomputes from the canonical CSV and never reads them). Floats are parsed with correctly rounded Python `float`, so outputs are byte-identical across platforms. Rebuild offline; no external joins. |
+ | `phase2/backend.py` | Dataframe + immutable `Filters` -> values/dataframes. Filtering, KPI aggregation, ranking, distribution, geography and comparison have separate jobs. No mutable global data, prints, file reads or Streamlit dependencies. |
+ | `app.py` (Phase 3) | Render controls and coordinate state; call backend. No metric formulas duplicated in chart code. Compare deltas are presentation transforms of backend values. |
+ | `views/` (Phase 3) | Separate Explore, Compare and Details rendering functions receive tables and explicit selection callbacks. Chart changes do not alter cleaning. |
+@@ -113,15 +124,18 @@ neighborhood-key join. Geographic extents and region sizes must not imply densit
+ CSV fits ~44k rows and preserves a human-inspectable handoff; use explicit dtypes
+ on every load. Keep one canonical full dataset, not different cleaned copies per
+ view. The source remains immutable. The manifest pins source/output hashes.
+-Requirements are in `phase2/requirements.txt`; the existing root requirements
+-belong to earlier work. No services, secrets or database needed.
++Phase 2 requirements are in `phase2/requirements.txt`. Before building the UI,
++run `python -m pip install -r phase2/requirements-dashboard.txt` for the exact
++Streamlit/Plotly versions exercised by the fresh-agent build. Start Phase 3 with
++`python -m streamlit run app.py` from the repository root. The existing root
++requirements belong to earlier work. No services, secrets or database needed.
+ 
+-In Phase 3 cache canonical loading by canonical file SHA-256 using
++In Phase 3 cache canonical loading by canonical file SHA-256 (hash once per file path+mtime+size, not every rerun) using
+ `st.cache_data`; cache aggregation by hash plus normalized Filters tuple. Clear
+ cache when hash changes. Do not cache UI selection in backend. Render aggregated
+ map points (hundreds), paginate listing rows, and cap bars at 15; do not push 44k
+ listing markers into the browser. Profile on the developer laptop: aim for cold
+-load <5s and cached filter changes <1s; record timings and optimize only if they
++load <5s, first-time (uncached) filter changes <5s and cached filter changes <1s; record timings and optimize only if they
+ miss. These are Phase 3 acceptance targets, not claimed benchmark results.
+ Use a standard pip environment on deployment, repository-relative paths and
+ Streamlit-compatible hosting; data and environment rebuild must work without
+@@ -133,13 +147,13 @@ markers on a coordinate/grid fallback, and always keep the table usable.
+ 1. From repository root, install `phase2/requirements.txt`; run `python -m phase2.build`
+    then `python -m phase2.test_backend`. Review `phase2/outputs/audit.json` and
+    `verification.json`. No editing of Phase 1 or earlier submission artifacts.
+-2. Confirm team cleaning resolutions and merge this canonical package into main;
++2. **Team gate, not an agent task:** confirm team cleaning resolutions and merge this canonical package into main;
+    see `phase2/RECONCILIATION.md`. Do not claim this happened before branch evidence.
+ 3. Create `app.py` and views, wire global controls and default KPI/segment table.
+ 4. Add price/affordability bars and step CDF; verify selected versus pre-budget
+    counts with exported example scenarios, including budget250.
+ 5. Add geographic markers, hover, detail selection and keyboard equivalent; test
+-   omitted coordinates, small groups and network fallback.
++   omitted coordinates, small groups and Coordinate grid mode with network disabled.
+ 6. Add same-room comparison and listing detail pagination/export. Never create a
+    rating, occupancy or availability-for-trip inference.
+ 7. Check empty results, all missing prices, minimum stay at exactly trip length,
+@@ -148,13 +162,15 @@ markers on a coordinate/grid fallback, and always keep the table usable.
+ 
+ Concrete data checks: canonical rows 43,932 and unique string IDs; 5,570 prices,
+ 11 minimum stays, 11,311 monthly review rates and 30,740 licenses missing; full-market
+-median observed price $224. All observed numeric values and identifier digits
+-match the source. A 7-night stay includes minimum_nights=7 and excludes 8/unknown.
++median observed price $224. All observed numeric values (including coordinates,
++compared as correctly rounded floats) and identifier digits match the source; a rebuild
++on any platform reproduces the manifest hashes. A 7-night stay includes minimum_nights=7 and excludes 8/unknown.
+ For any $250 budget, affordability numerator equals selected priced listings and
+ denominator equals pre-budget price_n. Empty result count=0 and median=N/A.
+-Changing room type must change all relevant views; hovering never changes filters.
++Changing global room type must change all Explore and Details views (Compare has its own selector); hovering never changes filters.
+ 
+ Fresh-agent build check before submission: use a clean checkout, give an independent
+ agent this spec and ask it to build Phase 3. Record every question/guess and fix the
+ contract. Automated fresh-process reruns are separate evidence and do not substitute
+-for that check. Current completion status is in `phase2/READINESS.md`.
++for that check. Findings, fixes and verification are recorded in
++`phase2/FRESH_AGENT_TEST.md`; current completion status is in `phase2/READINESS.md`.

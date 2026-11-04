@@ -7,3 +7,16 @@
 *.jsonl
 raw_data/
 data/
+raw_backup/
+outputs/cleaned_listings.csv
+output/pdf/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+!outputs/cleaned_sample.csv
+!outputs/original_sample.csv
+!outputs/record_checks.csv
+!outputs/metrics.csv
+!outputs/missing_counts.csv
+!outputs/segment_summary.csv
+!phase2/outputs/*.csv
