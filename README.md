@@ -6,7 +6,7 @@ using Inside Airbnb listing data.
 | | Link |
 |---|---|
 | Live app | https://project-3qwdutane3pfvjizjpfdpx.streamlit.app/ |
-| Demo video | _add the video link_ |
+| Demo video | https://drive.google.com/file/d/19JHIQqqD_gXrQwYs83FgvvOpB9BynTyq/view?usp=sharing |
 | Repository | https://github.com/cynthiaqgao/project (branch `main`) |
 
 ## Intended users and decisions
